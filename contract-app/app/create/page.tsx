@@ -3,25 +3,29 @@
 import { useStore } from "@/store/useStore";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function CreateContract() {
   const { createContract } = useStore();
   const router = useRouter();
 
-  const [blueprintName, setName] =
-    useState("");
-  const [clientName, setClient] =
-    useState("");
+  const [blueprintName, setName] = useState("");
+  const [clientName, setClient] = useState("");
 
-  function handleSubmit(e: any) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    createContract({
-      blueprintName,
-      clientName,
-    });
+    try {
+      createContract({
+        blueprintName,
+        clientName,
+      });
 
-    router.push("/");
+      toast.success("Contract created successfully!");
+      router.push("/");
+    } catch (err) {
+      toast.error("Something went wrong");
+    }
   }
 
   return (
@@ -67,11 +71,48 @@ export default function CreateContract() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium transition"
         >
           Create Contract
         </button>
       </form>
+      {/* Live Preview */}
+<div className="mt-10">
+  <h2 className="font-medium mb-3">
+    Live Preview
+  </h2>
+
+  <div className="bg-white border rounded-lg p-6">
+
+    <h3 className="text-lg font-semibold">
+      {blueprintName || "Contract Title"}
+    </h3>
+
+    <p className="text-sm text-slate-500 mb-4">
+      Client: {clientName || "Client Name"}
+    </p>
+
+    <div className="space-y-3 text-sm">
+      <p>
+        This agreement is made between{" "}
+        <b>
+          {clientName || "Client"}
+        </b>{" "}
+        and Company.
+      </p>
+
+      <p>
+        All confidential information must
+        remain protected.
+      </p>
+
+      <div className="border-t pt-4">
+        Signature: ____________
+      </div>
+    </div>
+  </div>
+</div>
+
     </div>
   );
 }

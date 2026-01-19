@@ -109,19 +109,28 @@ export default function ContractDetail() {
             </button>
           )}
 
-          {contract.status === "APPROVED" && (
-            <button
-              onClick={() =>
-                updateStatus(
-                  contract.id,
-                  "SENT"
-                )
-              }
-              className="btn-primary"
-            >
-              Send
-            </button>
-          )}
+         {contract.status === "APPROVED" && (
+  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg flex justify-between items-center">
+
+    <div>
+      <p className="font-medium">
+        Ready to send contract
+      </p>
+      <p className="text-sm text-slate-500">
+        This will notify the client via email
+      </p>
+    </div>
+
+    <button
+      onClick={() =>
+        updateStatus(contract.id, "SENT")
+      }
+      className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
+    >
+      Send Contract
+    </button>
+  </div>
+)}
 
           {contract.status === "SENT" && (
             <button
