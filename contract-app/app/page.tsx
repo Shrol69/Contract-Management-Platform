@@ -1,160 +1,167 @@
 "use client";
 
 import { useStore } from "@/store/useStore";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { format } from "date-fns";
+import { Plus, Search } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
-import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
 
-const STEPS = ["CREATED", "APPROVED", "SENT", "SIGNED", "LOCKED"];
+export default function Dashboard() {
+  const { contracts } = useStore();
+  const [search, setSearch] = useState("");
 
-export default function ContractDetails() {
-  const params = useParams();
-  const router = useRouter();
-  const id = typeof params?.id === "string" ? params.id : "";
-
-  const { contracts, updateStatus, revokeContract } = useStore();
-  const [contract, setContract] = useState(
-    contracts.find((c) => c.id === id)
+  const filtered = contracts.filter(
+    (c) =>
+      c.blueprintName
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
+      c.clientName
+        .toLowerCase()
+        .includes(search.toLowerCase())
   );
 
-  useEffect(() => {
-    setContract(contracts.find((c) => c.id === id));
-  }, [contracts, id]);
-
-  if (!contract) return <div className="p-10">Loading...</div>;
-
-  const currentStep = STEPS.indexOf(contract.status);
+  const total = contracts.length;
+  const signed = contracts.filter(
+    (c) => c.status === "SIGNED"
+  ).length;
+  const pending = total - signed;
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-7xl mx-auto">
 
-      {/* BACK */}
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-2 text-sm text-slate-500 hover:text-black mb-4"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to dashboard
-      </button>
-
-      {/* MAIN CARD */}
-      <div className="bg-white rounded-xl shadow-sm border p-8">
-
-        {/* HEADER */}
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h1 className="text-2xl font-semibold">
-              {contract.blueprintName}
-            </h1>
-            <p className="text-slate-500 mt-1">
-              Client: {contract.clientName}
-            </p>
-          </div>
-
-          <StatusBadge status={contract.status} />
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold">Contracts</h1>
+          <p className="text-sm text-slate-500">
+            Manage all your legal documents
+          </p>
         </div>
 
-        {/* STEPPER */}
-        <div className="flex items-center justify-between mb-10">
+        <Link
+          href="/create"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition"
+        >
+          <Plus size={16} /> New Contract
+        </Link>
+      </div>
 
-          {STEPS.map((step, index) => {
-            const isDone = index < currentStep;
-            const isActive = index === currentStep;
+      {/* KPI CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white border rounded-lg p-4">
+          <p className="text-sm text-slate-500">Total</p>
+          <p className="text-2xl font-semibold">
+            {total}
+          </p>
+        </div>
 
-            return (
-              <div key={step} className="flex-1 flex items-center">
+        <div className="bg-white border rounded-lg p-4">
+          <p className="text-sm text-slate-500">
+            Pending
+          </p>
+          <p className="text-2xl font-semibold">
+            {pending}
+          </p>
+        </div>
 
-                {/* Circle */}
-                <div
-                  className={`w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold
-                  ${
-                    isDone
-                      ? "bg-blue-600 text-white"
-                      : isActive
-                      ? "bg-blue-100 text-blue-700 border border-blue-500"
-                      : "bg-slate-200 text-slate-500"
-                  }`}
+        <div className="bg-white border rounded-lg p-4">
+          <p className="text-sm text-slate-500">
+            Signed
+          </p>
+          <p className="text-2xl font-semibold">
+            {signed}
+          </p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative w-72 mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <input
+          value={search}
+          onChange={(e) =>
+            setSearch(e.target.value)
+          }
+          placeholder="Search contracts..."
+          className="w-full pl-10 pr-4 py-2 border rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {/* Table */}
+      <div className="bg-white border rounded-lg overflow-hidden shadow-sm">
+
+        <table className="w-full text-left">
+          <thead className="bg-slate-50 border-b">
+            <tr>
+              <th className="px-6 py-3 text-xs font-semibold text-slate-500">
+                Contract
+              </th>
+              <th className="px-6 py-3 text-xs font-semibold text-slate-500">
+                Client
+              </th>
+              <th className="px-6 py-3 text-xs font-semibold text-slate-500">
+                Status
+              </th>
+              <th className="px-6 py-3 text-xs font-semibold text-slate-500">
+                Created
+              </th>
+              <th />
+            </tr>
+          </thead>
+
+          <tbody className="divide-y">
+            {filtered.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="py-12 text-center"
                 >
-                  {index + 1}
-                </div>
-
-                {/* Line */}
-                {index !== STEPS.length - 1 && (
-                  <div
-                    className={`flex-1 h-1 mx-3 rounded
-                    ${
-                      isDone
-                        ? "bg-blue-600"
-                        : "bg-slate-200"
-                    }`}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ACTIONS */}
-        <div className="flex gap-3 pt-6 border-t">
-
-          {contract.status === "CREATED" && (
-            <button
-              onClick={() =>
-                updateStatus(contract.id, "APPROVED")
-              }
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-sm font-medium"
-            >
-              Approve
-            </button>
-          )}
-
-          {contract.status === "APPROVED" && (
-            <button
-              onClick={() =>
-                updateStatus(contract.id, "SENT")
-              }
-              className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-md text-sm font-medium"
-            >
-              Send
-            </button>
-          )}
-
-          {contract.status === "SENT" && (
-            <button
-              onClick={() =>
-                updateStatus(contract.id, "SIGNED")
-              }
-              className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md text-sm font-medium"
-            >
-              Mark Signed
-            </button>
-          )}
-
-          {contract.status === "SIGNED" && (
-            <button
-              onClick={() =>
-                updateStatus(contract.id, "LOCKED")
-              }
-              className="bg-slate-800 hover:bg-black text-white px-5 py-2 rounded-md text-sm font-medium"
-            >
-              Lock Contract
-            </button>
-          )}
-
-          {/* REVOKE */}
-          {contract.status !== "LOCKED" &&
-            contract.status !== "REVOKED" && (
-              <button
-                onClick={() =>
-                  revokeContract(contract.id)
-                }
-                className="ml-auto text-red-600 border border-red-200 px-5 py-2 rounded-md text-sm hover:bg-red-50"
-              >
-                Revoke
-              </button>
+                  <p className="text-slate-400">
+                    No contracts found
+                  </p>
+                  <Link
+                    href="/create"
+                    className="text-blue-600 text-sm mt-2 inline-block"
+                  >
+                    Create your first contract
+                  </Link>
+                </td>
+              </tr>
+            ) : (
+              filtered.map((c) => (
+                <tr
+                  key={c.id}
+                  className="hover:bg-slate-50 transition"
+                >
+                  <td className="px-6 py-4 font-medium">
+                    {c.blueprintName}
+                  </td>
+                  <td className="px-6 py-4 text-slate-600">
+                    {c.clientName}
+                  </td>
+                  <td className="px-6 py-4">
+                    <StatusBadge status={c.status} />
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-500">
+                    {format(
+                      new Date(c.createdAt),
+                      "dd MMM yyyy"
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <Link
+                      href={`/contract/${c.id}`}
+                      className="text-blue-600 text-sm font-medium hover:underline"
+                    >
+                      View
+                    </Link>
+                  </td>
+                </tr>
+              ))
             )}
-        </div>
+          </tbody>
+        </table>
       </div>
     </div>
   );

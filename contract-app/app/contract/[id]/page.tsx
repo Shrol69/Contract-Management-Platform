@@ -1,54 +1,58 @@
 "use client";
 
-import { useStore } from "@/store/useStore";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useStore } from "@/store/useStore";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ArrowLeft } from "lucide-react";
 
-const STEPS = ["CREATED", "APPROVED", "SENT", "SIGNED", "LOCKED"];
+const steps = [
+  "CREATED",
+  "APPROVED",
+  "SENT",
+  "SIGNED",
+  "LOCKED",
+];
 
-export default function ContractDetails() {
-  const params = useParams();
+export default function ContractDetail() {
+  const { id } = useParams();
   const router = useRouter();
-  const id = typeof params?.id === "string" ? params.id : "";
+  const { contracts, updateStatus, revokeContract } =
+    useStore();
 
-  const { contracts, updateStatus, revokeContract } = useStore();
-  const [contract, setContract] = useState(
-    contracts.find((c) => c.id === id)
+  const contract = contracts.find(
+    (c) => c.id === id
   );
 
-  useEffect(() => {
-    if (id) {
-      setContract(contracts.find((c) => c.id === id));
-    }
-  }, [id, contracts]);
+  if (!contract)
+    return (
+      <div className="p-6">
+        Contract not found
+      </div>
+    );
 
-  if (!contract) return <div className="p-10">Loading...</div>;
-
-  const currentStep = STEPS.indexOf(contract.status);
+  const currentStep =
+    steps.indexOf(contract.status);
 
   return (
-    <div className="max-w-4xl mx-auto fade-in">
+    <div className="max-w-4xl mx-auto">
 
-      {/* BACK */}
+      {/* Back */}
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-sm text-slate-500 hover:text-black mb-4"
+        className="flex items-center gap-2 text-sm text-slate-500 mb-4 hover:text-black"
       >
-        <ArrowLeft className="w-4 h-4" />
-        Back
+        <ArrowLeft size={16} /> Back
       </button>
 
-      <div className="card">
+      <div className="bg-white border rounded-xl p-6 shadow-sm">
 
-        {/* HEADER */}
+        {/* Header */}
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-2xl font-semibold">
               {contract.blueprintName}
             </h1>
-            <p className="text-slate-600">
+            <p className="text-slate-500">
               Client: {contract.clientName}
             </p>
           </div>
@@ -56,15 +60,15 @@ export default function ContractDetails() {
           <StatusBadge status={contract.status} />
         </div>
 
-        {/* STATUS STEPPER */}
-        <div className="flex items-center justify-between mb-8">
-          {STEPS.map((step, i) => (
+        {/* Stepper */}
+        <div className="flex justify-between mb-10">
+          {steps.map((s, i) => (
             <div
-              key={step}
+              key={s}
               className="flex-1 flex items-center"
             >
               <div
-                className={`w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
                 ${
                   i <= currentStep
                     ? "bg-blue-600 text-white"
@@ -74,9 +78,9 @@ export default function ContractDetails() {
                 {i + 1}
               </div>
 
-              {i !== STEPS.length - 1 && (
+              {i !== steps.length - 1 && (
                 <div
-                  className={`flex-1 h-0.5 mx-2
+                  className={`flex-1 h-1 mx-2
                   ${
                     i < currentStep
                       ? "bg-blue-600"
@@ -88,13 +92,16 @@ export default function ContractDetails() {
           ))}
         </div>
 
-        {/* ACTIONS */}
-        <div className="flex gap-3 pt-6 border-t">
+        {/* Actions */}
+        <div className="flex gap-3 border-t pt-6">
 
           {contract.status === "CREATED" && (
             <button
               onClick={() =>
-                updateStatus(contract.id, "APPROVED")
+                updateStatus(
+                  contract.id,
+                  "APPROVED"
+                )
               }
               className="btn-primary"
             >
@@ -105,7 +112,10 @@ export default function ContractDetails() {
           {contract.status === "APPROVED" && (
             <button
               onClick={() =>
-                updateStatus(contract.id, "SENT")
+                updateStatus(
+                  contract.id,
+                  "SENT"
+                )
               }
               className="btn-primary"
             >
@@ -116,7 +126,10 @@ export default function ContractDetails() {
           {contract.status === "SENT" && (
             <button
               onClick={() =>
-                updateStatus(contract.id, "SIGNED")
+                updateStatus(
+                  contract.id,
+                  "SIGNED"
+                )
               }
               className="btn-primary"
             >
@@ -127,26 +140,31 @@ export default function ContractDetails() {
           {contract.status === "SIGNED" && (
             <button
               onClick={() =>
-                updateStatus(contract.id, "LOCKED")
+                updateStatus(
+                  contract.id,
+                  "LOCKED"
+                )
               }
               className="btn-primary"
             >
-              Lock Contract
+              Lock
             </button>
           )}
 
-          {/* REVOKE */}
-          {contract.status !== "LOCKED" &&
-            contract.status !== "REVOKED" && (
-              <button
-                onClick={() =>
-                  revokeContract(contract.id)
-                }
-                className="ml-auto text-red-600 border border-red-200 px-4 py-2 rounded-md text-sm hover:bg-red-50"
-              >
-                Revoke
-              </button>
-            )}
+          {/* Revoke */}
+          {contract.status !==
+            "LOCKED" && (
+            <button
+              onClick={() =>
+                revokeContract(
+                  contract.id
+                )
+              }
+              className="ml-auto text-red-600 border border-red-200 px-4 py-2 rounded-md text-sm hover:bg-red-50"
+            >
+              Revoke
+            </button>
+          )}
         </div>
       </div>
     </div>
