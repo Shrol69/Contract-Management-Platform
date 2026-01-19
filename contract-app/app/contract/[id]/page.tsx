@@ -5,7 +5,7 @@ import { useStore } from "@/store/useStore";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ArrowLeft, Download } from "lucide-react";
 import jsPDF from "jspdf";
-
+import { useState } from "react";
 
 const steps = [
   "CREATED",
@@ -21,6 +21,9 @@ export default function ContractDetail() {
   const { contracts, updateStatus, revokeContract } =
     useStore();
 
+  const [downloading, setDownloading] =
+    useState(false);
+
   const contract = contracts.find(
     (c) => c.id === id
   );
@@ -35,54 +38,76 @@ export default function ContractDetail() {
   const currentStep =
     steps.indexOf(contract.status);
 
-async function downloadPDF() {
-  if (typeof window === "undefined") return;
-
-  const node = document.getElementById(
-    "contract-preview"
-  );
-  if (!node) return;
-
-  // dynamic import (client only)
-  const domtoimage =
-    (await import("dom-to-image-more")).default;
-
-  const dataUrl = await domtoimage.toPng(node);
-
-  const pdf = new jsPDF("p", "mm", "a4");
-
-  const imgProps =
-    pdf.getImageProperties(dataUrl);
-
-  const pdfWidth = 210;
-  const pdfHeight =
-    (imgProps.height * pdfWidth) /
-    imgProps.width;
-
-  pdf.addImage(
-    dataUrl,
-    "PNG",
-    0,
-    0,
-    pdfWidth,
-    pdfHeight
+  const today = new Date().toLocaleDateString(
+    "en-GB",
+    {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    }
   );
 
-  const safeClient =
-    contract.clientName
-      .replace(/\s+/g, "_")
-      .toLowerCase();
+  async function downloadPDF() {
+    if (typeof window === "undefined") return;
 
-  const safeContract =
-    contract.blueprintName
-      .replace(/\s+/g, "_")
-      .toLowerCase();
+    setDownloading(true);
 
-  pdf.save(
-    `${safeClient}_${safeContract}.pdf`
-  );
-}
+    const node =
+      document.getElementById(
+        "contract-preview"
+      );
+    if (!node) return;
 
+    const domtoimage =
+      (await import(
+        "dom-to-image-more"
+      )).default;
+
+    const dataUrl =
+      await domtoimage.toPng(node);
+
+    const pdf = new jsPDF(
+      "p",
+      "mm",
+      "a4"
+    );
+
+    const imgProps =
+      pdf.getImageProperties(dataUrl);
+
+    const pdfWidth = 210;
+    const pdfHeight =
+      (imgProps.height * pdfWidth) /
+      imgProps.width;
+
+    pdf.addImage(
+      dataUrl,
+      "PNG",
+      0,
+      0,
+      pdfWidth,
+      pdfHeight
+    );
+
+    const safeClient =
+      contract.clientName
+        .replace(/\s+/g, "_")
+        .toLowerCase();
+
+    const safeContract =
+      contract.blueprintName
+        .replace(/\s+/g, "_")
+        .toLowerCase();
+
+    pdf.save(
+      `eurusys_${safeClient}_${safeContract}_${today.replace(
+        / /g,
+        "_"
+      )}.pdf`
+    );
+
+    setDownloading(false);
+  }
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -107,22 +132,33 @@ async function downloadPDF() {
                 {contract.blueprintName}
               </h1>
               <p className="text-slate-500">
-                Client: {contract.clientName}
+                Client:{" "}
+                {contract.clientName}
               </p>
             </div>
 
             <div className="flex items-center gap-3">
               <StatusBadge
-                status={contract.status}
+                status={
+                  contract.status
+                }
               />
 
-              {/* DOWNLOAD BUTTON */}
               <button
-                onClick={downloadPDF}
-                className="flex items-center gap-2 bg-black text-white px-3 py-2 rounded-md text-sm hover:opacity-90"
+                onClick={
+                  downloadPDF
+                }
+                disabled={
+                  downloading
+                }
+                className="flex items-center gap-2 bg-black text-white px-3 py-2 rounded-md text-sm hover:opacity-90 disabled:opacity-50"
               >
-                <Download size={16} />
-                Download PDF
+                <Download
+                  size={16}
+                />
+                {downloading
+                  ? "Generating..."
+                  : "Download PDF"}
               </button>
             </div>
           </div>
@@ -145,11 +181,14 @@ async function downloadPDF() {
                   {i + 1}
                 </div>
 
-                {i !== steps.length - 1 && (
+                {i !==
+                  steps.length -
+                    1 && (
                   <div
                     className={`flex-1 h-1 mx-2
                     ${
-                      i < currentStep
+                      i <
+                      currentStep
                         ? "bg-blue-600"
                         : "bg-slate-200"
                     }`}
@@ -162,7 +201,8 @@ async function downloadPDF() {
           {/* ACTIONS */}
           <div className="border-t pt-6 space-y-4">
 
-            {contract.status === "CREATED" && (
+            {contract.status ===
+              "CREATED" && (
               <ActionCard
                 title="Approve contract"
                 desc="Review and approve this contract"
@@ -177,7 +217,8 @@ async function downloadPDF() {
               />
             )}
 
-            {contract.status === "APPROVED" && (
+            {contract.status ===
+              "APPROVED" && (
               <ActionCard
                 title="Ready to send"
                 desc="Client will receive email"
@@ -192,7 +233,8 @@ async function downloadPDF() {
               />
             )}
 
-            {contract.status === "SENT" && (
+            {contract.status ===
+              "SENT" && (
               <ActionCard
                 title="Awaiting signature"
                 desc="Mark once client signs"
@@ -207,7 +249,8 @@ async function downloadPDF() {
               />
             )}
 
-            {contract.status === "SIGNED" && (
+            {contract.status ===
+              "SIGNED" && (
               <ActionCard
                 title="Finalize contract"
                 desc="Lock to prevent edits"
@@ -222,7 +265,8 @@ async function downloadPDF() {
               />
             )}
 
-            {contract.status !== "LOCKED" && (
+            {contract.status !==
+              "LOCKED" && (
               <ActionCard
                 title="Revoke contract"
                 desc="This action cannot be undone"
@@ -230,66 +274,79 @@ async function downloadPDF() {
                 btn="Revoke"
                 danger
                 onClick={() =>
-                  revokeContract(contract.id)
+                  revokeContract(
+                    contract.id
+                  )
                 }
               />
             )}
           </div>
         </div>
 
-        {/* RIGHT PANEL – PREVIEW */}
+        {/* PREVIEW */}
         <div
-  id="contract-preview"
-  className="bg-white border border-slate-200 rounded-lg p-6 h-fit"
->
-  <h3 className="font-semibold mb-3 print:hidden">
-    Contract Preview
-  </h3>
+          id="contract-preview"
+          className="bg-white border rounded-lg p-6 h-fit"
+        >
+          <h3 className="font-semibold mb-3">
+            Contract Preview
+          </h3>
 
-  <div className="text-sm space-y-5 leading-relaxed">
+          <div className="text-sm space-y-5 leading-relaxed">
 
-    <h2 className="text-lg font-bold text-center">
-      {contract.blueprintName}
-    </h2>
+            <h2 className="text-lg font-bold text-center">
+              {contract.blueprintName}
+            </h2>
 
-    <p className="text-slate-500 text-center">
-      Client: {contract.clientName}
-    </p>
+            <p className="text-slate-500 text-center">
+              Client:{" "}
+              {contract.clientName}
+            </p>
 
-    <p>
-  This agreement is entered between{" "}
-  <b>{contract.clientName}</b> and
-  <b> EURUSYS LLC </b>.
-</p>
-    <p>
-      All confidential information must remain
-      protected and shall not be disclosed.
-    </p>
+            <p>
+              This agreement is entered
+              on <b>{today}</b>{" "}
+              between{" "}
+              <b>
+                {
+                  contract.clientName
+                }
+              </b>{" "}
+              and{" "}
+              <b>EURUSYS LLC</b>.
+            </p>
 
-    <p>
-      This contract is legally binding under
-      applicable laws.
-    </p>
+            <p>
+              All confidential
+              information must remain
+              protected and shall not
+              be disclosed.
+            </p>
 
-    <div className="border-t pt-4 mt-6">
-      <p>
-        Signature:
-        ___________________
-      </p>
-      <p className="mt-2">
-        Date:
-        ___________________
-      </p>
-    </div>
-  </div>
-</div>
+            <p>
+              This contract is legally
+              binding under applicable
+              laws.
+            </p>
 
+            <div className="border-t pt-4 mt-6">
+              <p>
+                Signature:
+                ___________________
+              </p>
+              <p className="mt-2">
+                Date:{" "}
+                <b>{today}</b>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ACTION CARD COMPONENT */
+/* ACTION CARD */
 function ActionCard({
   title,
   desc,
