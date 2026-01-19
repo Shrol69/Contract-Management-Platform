@@ -1,3 +1,79 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ------------------------------
+   GLOBAL VARIABLES
+------------------------------ */
+:root {
+  --primary: #1e40af;
+  --bg: #f8fafc;
+  --text: #0f172a;
+}
+
+/* ------------------------------
+   BASE
+------------------------------ */
+body {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------
+   SCROLLBAR
+------------------------------ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c7d2fe;
+  border-radius: 8px;
+}
+
+/* ------------------------------
+   CUSTOM CLASSES (PURE CSS)
+------------------------------ */
+
+.card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: 0.2s;
+}
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.btn-secondary {
+  border: 1px solid #e2e8f0;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.btn-secondary:hover {
+  background: #f1f5f9;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-created { background:#f1f5f9; color:#334155; }
+.badge-approved { background:#dbeafe; color:#1e40af; }
+.badge-sent { background:#fef3c7; color:#92400e; }
+.badge-signed { background:#dcfce7; color:#166534; }
+.badge-locked { background:#020617; color:white; }
+.badge-revoked { background:#fee2e2; color:#991b1b; }

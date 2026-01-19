@@ -3,18 +3,21 @@
 import { useStore } from "@/store/useStore";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { StatusBadge } from "@/components/StatusBadge";
+import { ArrowLeft } from "lucide-react";
+
+const STEPS = ["CREATED", "APPROVED", "SENT", "SIGNED", "LOCKED"];
 
 export default function ContractDetails() {
   const params = useParams();
   const router = useRouter();
-  
-  // Safe handling of the ID
-  const id = typeof params?.id === 'string' ? params.id : '';
+  const id = typeof params?.id === "string" ? params.id : "";
 
-  const { contracts, updateStatus } = useStore();
-  const [contract, setContract] = useState(contracts.find((c) => c.id === id));
+  const { contracts, updateStatus, revokeContract } = useStore();
+  const [contract, setContract] = useState(
+    contracts.find((c) => c.id === id)
+  );
 
-  // Sync state when loading
   useEffect(() => {
     if (id) {
       setContract(contracts.find((c) => c.id === id));
@@ -23,55 +26,127 @@ export default function ContractDetails() {
 
   if (!contract) return <div className="p-10">Loading...</div>;
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-10">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border p-8">
-        <button onClick={() => router.back()} className="mb-4 text-gray-500 hover:text-black">
-          ← Back
-        </button>
+  const currentStep = STEPS.indexOf(contract.status);
 
+  return (
+    <div className="max-w-4xl mx-auto fade-in">
+
+      {/* BACK */}
+      <button
+        onClick={() => router.back()}
+        className="flex items-center gap-2 text-sm text-slate-500 hover:text-black mb-4"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back
+      </button>
+
+      <div className="card">
+
+        {/* HEADER */}
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h1 className="text-2xl font-bold">{contract.blueprintName}</h1>
-            <p className="text-gray-600">Client: {contract.clientName}</p>
+            <h1 className="text-2xl font-bold">
+              {contract.blueprintName}
+            </h1>
+            <p className="text-slate-600">
+              Client: {contract.clientName}
+            </p>
           </div>
-          <span className="px-3 py-1 rounded-full text-sm font-bold bg-blue-50 text-blue-700 border border-blue-200">
-            {contract.status}
-          </span>
+
+          <StatusBadge status={contract.status} />
         </div>
 
-        {/* LOGIC: Only show valid next steps */}
-        <div className="flex gap-3 mt-8 pt-6 border-t">
-          {contract.status === 'CREATED' && (
-            <button onClick={() => updateStatus(contract.id, 'APPROVED')} className="bg-blue-600 text-white px-4 py-2 rounded">
+        {/* STATUS STEPPER */}
+        <div className="flex items-center justify-between mb-8">
+          {STEPS.map((step, i) => (
+            <div
+              key={step}
+              className="flex-1 flex items-center"
+            >
+              <div
+                className={`w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold
+                ${
+                  i <= currentStep
+                    ? "bg-blue-600 text-white"
+                    : "bg-slate-200 text-slate-500"
+                }`}
+              >
+                {i + 1}
+              </div>
+
+              {i !== STEPS.length - 1 && (
+                <div
+                  className={`flex-1 h-0.5 mx-2
+                  ${
+                    i < currentStep
+                      ? "bg-blue-600"
+                      : "bg-slate-200"
+                  }`}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* ACTIONS */}
+        <div className="flex gap-3 pt-6 border-t">
+
+          {contract.status === "CREATED" && (
+            <button
+              onClick={() =>
+                updateStatus(contract.id, "APPROVED")
+              }
+              className="btn-primary"
+            >
               Approve
             </button>
           )}
 
-          {contract.status === 'APPROVED' && (
-            <button onClick={() => updateStatus(contract.id, 'SENT')} className="bg-purple-600 text-white px-4 py-2 rounded">
+          {contract.status === "APPROVED" && (
+            <button
+              onClick={() =>
+                updateStatus(contract.id, "SENT")
+              }
+              className="btn-primary"
+            >
               Send
             </button>
           )}
 
-          {contract.status === 'SENT' && (
-            <button onClick={() => updateStatus(contract.id, 'SIGNED')} className="bg-green-600 text-white px-4 py-2 rounded">
-              Sign
+          {contract.status === "SENT" && (
+            <button
+              onClick={() =>
+                updateStatus(contract.id, "SIGNED")
+              }
+              className="btn-primary"
+            >
+              Mark Signed
             </button>
           )}
 
-          {contract.status === 'SIGNED' && (
-            <button onClick={() => updateStatus(contract.id, 'LOCKED')} className="bg-gray-800 text-white px-4 py-2 rounded">
-              Lock
+          {contract.status === "SIGNED" && (
+            <button
+              onClick={() =>
+                updateStatus(contract.id, "LOCKED")
+              }
+              className="btn-primary"
+            >
+              Lock Contract
             </button>
           )}
 
-           {/* Revoke is always visible unless locked */}
-           {contract.status !== 'LOCKED' && contract.status !== 'REVOKED' && (
-            <button onClick={() => updateStatus(contract.id, 'REVOKED')} className="ml-auto text-red-500 border border-red-200 px-4 py-2 rounded">
-              Revoke
-            </button>
-          )}
+          {/* REVOKE */}
+          {contract.status !== "LOCKED" &&
+            contract.status !== "REVOKED" && (
+              <button
+                onClick={() =>
+                  revokeContract(contract.id)
+                }
+                className="ml-auto text-red-600 border border-red-200 px-4 py-2 rounded-md text-sm hover:bg-red-50"
+              >
+                Revoke
+              </button>
+            )}
         </div>
       </div>
     </div>
