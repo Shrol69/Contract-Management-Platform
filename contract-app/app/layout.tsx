@@ -1,22 +1,9 @@
-import type { Metadata } from "next";
 import "./globals.css";
-import ClientLayout from "@/components/ClientLayout";
 
-export const metadata: Metadata = {
-  title: "ContractOS",
-  description: "Enterprise Contract Management Platform",
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
-        <ClientLayout>{children}</ClientLayout>
-      </body>
+    <html>
+      <body>{children}</body>
     </html>
   );
 }
