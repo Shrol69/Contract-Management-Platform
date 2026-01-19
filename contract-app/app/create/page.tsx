@@ -12,6 +12,15 @@ export default function CreateContract() {
   const [blueprintName, setName] = useState("");
   const [clientName, setClient] = useState("");
 
+  const today = new Date().toLocaleDateString(
+    "en-GB",
+    {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    }
+  );
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -21,7 +30,9 @@ export default function CreateContract() {
         clientName,
       });
 
-      toast.success("Contract created successfully!");
+      toast.success(
+        "Contract created successfully!"
+      );
       router.push("/");
     } catch (err) {
       toast.error("Something went wrong");
@@ -76,43 +87,70 @@ export default function CreateContract() {
           Create Contract
         </button>
       </form>
-      {/* Live Preview */}
-<div className="mt-10">
-  <h2 className="font-medium mb-3">
-    Live Preview
-  </h2>
 
-  <div className="bg-white border rounded-lg p-6">
+      {/* LIVE PREVIEW */}
+      <div className="mt-10">
+        <h2 className="font-medium mb-3">
+          Live Preview
+        </h2>
 
-    <h3 className="text-lg font-semibold">
-      {blueprintName || "Contract Title"}
-    </h3>
+        <div className="bg-white border rounded-lg p-6">
 
-    <p className="text-sm text-slate-500 mb-4">
-      Client: {clientName || "Client Name"}
-    </p>
+          <h3 className="text-lg font-semibold text-center">
+            {blueprintName ||
+              "Contract Title"}
+          </h3>
 
-    <div className="space-y-3 text-sm">
-      <p>
-        This agreement is made between{" "}
-        <b>
-          {clientName || "Client"}
-        </b>{" "}
-        and Company.
-      </p>
+          <p className="text-sm text-slate-500 text-center mb-4">
+            Client:{" "}
+            {clientName || "Client Name"}
+          </p>
 
-      <p>
-        All confidential information must
-        remain protected.
-      </p>
+          <p className="text-xs text-slate-400 text-center mb-6">
+            Date: {today}
+          </p>
 
-      <div className="border-t pt-4">
-        Signature: ____________
+          <div className="space-y-3 text-sm leading-relaxed">
+
+            <p>
+              This agreement is made between{" "}
+              <b>
+                {clientName || "Client"}
+              </b>{" "}
+              and{" "}
+              <b>
+                Eurusys Technologies LLC
+              </b>
+              .
+            </p>
+
+            <p>
+              Eurusys Technologies LLC is a
+              technology-focused company
+              delivering smart transformation
+              solutions across the UAE and
+              beyond.
+            </p>
+
+            <p>
+              All confidential information must
+              remain protected and shall not be
+              disclosed to any third party.
+            </p>
+
+            <div className="border-t pt-4 mt-4">
+              <p>
+                Signature:
+                ___________________
+              </p>
+              <p className="mt-2">
+                Authorized by: Eurusys
+                Technologies LLC
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-
     </div>
   );
 }

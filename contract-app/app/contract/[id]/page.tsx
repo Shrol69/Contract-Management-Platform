@@ -5,7 +5,7 @@ import { useStore } from "@/store/useStore";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ArrowLeft, Download } from "lucide-react";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+
 
 const steps = [
   "CREATED",
@@ -35,47 +35,54 @@ export default function ContractDetail() {
   const currentStep =
     steps.indexOf(contract.status);
 
-  /* PDF FUNCTION */
-  async function downloadPDF() {
-    const input = document.getElementById(
-      "contract-preview"
-    );
+async function downloadPDF() {
+  if (typeof window === "undefined") return;
 
-    if (!input) return;
+  const node = document.getElementById(
+    "contract-preview"
+  );
+  if (!node) return;
 
-    const canvas = await html2canvas(input);
-    const imgData = canvas.toDataURL("image/png");
+  // dynamic import (client only)
+  const domtoimage =
+    (await import("dom-to-image-more")).default;
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    const imgWidth = 210;
-    const imgHeight =
-      (canvas.height * imgWidth) /
-      canvas.width;
+  const dataUrl = await domtoimage.toPng(node);
 
-    pdf.addImage(
-      imgData,
-      "PNG",
-      0,
-      0,
-      imgWidth,
-      imgHeight
-    );
+  const pdf = new jsPDF("p", "mm", "a4");
 
-    /* CLEAN FILE NAME */
-    const safeClient =
-      contract.clientName
-        .replace(/\s+/g, "_")
-        .toLowerCase();
+  const imgProps =
+    pdf.getImageProperties(dataUrl);
 
-    const safeContract =
-      contract.blueprintName
-        .replace(/\s+/g, "_")
-        .toLowerCase();
+  const pdfWidth = 210;
+  const pdfHeight =
+    (imgProps.height * pdfWidth) /
+    imgProps.width;
 
-    pdf.save(
-      `${safeClient}_${safeContract}.pdf`
-    );
-  }
+  pdf.addImage(
+    dataUrl,
+    "PNG",
+    0,
+    0,
+    pdfWidth,
+    pdfHeight
+  );
+
+  const safeClient =
+    contract.clientName
+      .replace(/\s+/g, "_")
+      .toLowerCase();
+
+  const safeContract =
+    contract.blueprintName
+      .replace(/\s+/g, "_")
+      .toLowerCase();
+
+  pdf.save(
+    `${safeClient}_${safeContract}.pdf`
+  );
+}
+
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -232,54 +239,51 @@ export default function ContractDetail() {
 
         {/* RIGHT PANEL – PREVIEW */}
         <div
-          id="contract-preview"
-          className="bg-white border rounded-xl p-6 shadow-sm h-fit"
-        >
-          <h3 className="font-semibold mb-3">
-            Contract Preview
-          </h3>
+  id="contract-preview"
+  className="bg-white border border-slate-200 rounded-lg p-6 h-fit"
+>
+  <h3 className="font-semibold mb-3 print:hidden">
+    Contract Preview
+  </h3>
 
-          <div className="text-sm space-y-4">
+  <div className="text-sm space-y-5 leading-relaxed">
 
-            <h2 className="text-lg font-bold">
-              {contract.blueprintName}
-            </h2>
+    <h2 className="text-lg font-bold text-center">
+      {contract.blueprintName}
+    </h2>
 
-            <p className="text-slate-500">
-              Client: {contract.clientName}
-            </p>
+    <p className="text-slate-500 text-center">
+      Client: {contract.clientName}
+    </p>
 
-            <p>
-              This agreement is entered between{" "}
-              <b>
-                {contract.clientName}
-              </b>{" "}
-              and Company.
-            </p>
+    <p>
+  This agreement is entered between{" "}
+  <b>{contract.clientName}</b> and
+  <b> EURUSYS LLC </b>.
+</p>
+    <p>
+      All confidential information must remain
+      protected and shall not be disclosed.
+    </p>
 
-            <p>
-              All confidential information must
-              remain protected and shall not be
-              disclosed.
-            </p>
+    <p>
+      This contract is legally binding under
+      applicable laws.
+    </p>
 
-            <p>
-              This contract is legally binding
-              under applicable laws.
-            </p>
+    <div className="border-t pt-4 mt-6">
+      <p>
+        Signature:
+        ___________________
+      </p>
+      <p className="mt-2">
+        Date:
+        ___________________
+      </p>
+    </div>
+  </div>
+</div>
 
-            <div className="border-t pt-4">
-              <p>
-                Signature:
-                ___________________
-              </p>
-              <p className="mt-2">
-                Date:
-                ___________________
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
