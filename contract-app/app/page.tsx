@@ -149,16 +149,15 @@ export default function Dashboard() {
                       href={`/contract/${c.id}`}
                       className="text-blue-600 text-sm hover:underline"
                     >
+                      
                       View
                     </Link>
 
                     {/* EDIT */}
-                    <Link
-                      href={`/edit/${c.id}`}
-                      className="text-green-600 text-sm flex items-center gap-1"
-                    >
+                    <Link 
+                    href={`/contract/${c.id}/edit`}className="text-green-600 text-sm flex items-center gap-1">
                       <Pencil size={14} />
-                      Edit
+                        Edit
                     </Link>
 
                     {/* DELETE */}

@@ -7,6 +7,8 @@ import { ArrowLeft, Download } from "lucide-react";
 import jsPDF from "jspdf";
 import { useState } from "react";
 
+
+
 /* TYPES */
 
 type ActionColor =
@@ -173,13 +175,6 @@ export default function ContractDetail() {
               <StatusBadge
                 status={contract.status}
               />
-              <Link
-  href={`/contract/${contract.id}/edit`}
-  className="bg-slate-200 px-3 py-2 rounded-md text-sm"
->
-  Edit
-</Link>
-
 
               <button
                 onClick={downloadPDF}
