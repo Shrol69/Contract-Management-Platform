@@ -38,28 +38,28 @@ export default function ClientLayout({
     }
   }, []);
 
-  const navItems = [
-    {
-      name: "Dashboard",
-      href: "/",
-      icon: LayoutDashboard,
-    },
-    {
-      name: "Blueprints",
-      href: "/create",
-      icon: FileText,
-    },
-    {
-      name: "Contracts",
-      href: "/",
-      icon: FileText,
-    },
-    {
-      name: "Settings",
-      href: "/settings",
-      icon: Settings,
-    },
-  ];
+ const navItems = [
+  {
+    name: "Dashboard",
+    href: "/",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Blueprints",
+    href: "/create",
+    icon: FileText,
+  },
+  {
+    name: "Contracts",
+    href: "/",
+    icon: FileText,
+  },
+  {
+    name: "Settings",
+    href: "/settings",
+    icon: Settings,
+  },
+];
 
   return (
     <div className="bg-slate-50 text-slate-900 flex h-screen overflow-hidden">

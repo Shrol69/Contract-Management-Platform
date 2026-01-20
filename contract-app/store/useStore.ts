@@ -1,64 +1,48 @@
 import { create } from "zustand";
+import { nanoid } from "nanoid";
 
-export type ContractStatus =
-  | "CREATED"
-  | "APPROVED"
-  | "SENT"
-  | "SIGNED"
-  | "LOCKED"
-  | "REVOKED";
-
-export interface Contract {
+type Field = {
   id: string;
-  blueprintName: string;
-  clientName: string;
-  status: ContractStatus;
-  createdAt: string;
-}
+  type: "text" | "date" | "signature" | "checkbox";
+  label: string;
+  x: number;
+  y: number;
+};
 
-interface Store {
-  contracts: Contract[];
+type Blueprint = {
+  id: string;
+  name: string;
+  fields: Field[];
+};
 
-  createContract: (data: {
-    blueprintName: string;
-    clientName: string;
-  }) => void;
+type Store = {
+  contracts: any[];
+  blueprints: Blueprint[];
 
-  updateStatus: (
-    id: string,
-    status: ContractStatus
-  ) => void;
-
+  createContract: (c: any) => void;
+  updateStatus: (id: string, status: string) => void;
   revokeContract: (id: string) => void;
-}
+
+  createBlueprint: (name: string) => void;
+  addField: (
+    blueprintId: string,
+    field: Field
+  ) => void;
+};
 
 export const useStore = create<Store>((set) => ({
-  contracts: [
-    {
-      id: "1",
-      blueprintName: "NDA Agreement",
-      clientName: "Acme Corp",
-      status: "CREATED",
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      blueprintName: "Employment Offer",
-      clientName: "John Doe",
-      status: "SENT",
-      createdAt: new Date().toISOString(),
-    },
-  ],
+  contracts: [],
+  blueprints: [],
 
-  createContract: (data) =>
+  createContract: (contract) =>
     set((state) => ({
       contracts: [
         ...state.contracts,
         {
-          id: crypto.randomUUID(),
+          id: nanoid(),
           status: "CREATED",
-          createdAt: new Date().toISOString(),
-          ...data,
+          createdAt: new Date(),
+          ...contract,
         },
       ],
     })),
@@ -66,18 +50,40 @@ export const useStore = create<Store>((set) => ({
   updateStatus: (id, status) =>
     set((state) => ({
       contracts: state.contracts.map((c) =>
-        c.id === id
-          ? { ...c, status }
-          : c
+        c.id === id ? { ...c, status } : c
       ),
     })),
 
   revokeContract: (id) =>
     set((state) => ({
-      contracts: state.contracts.map((c) =>
-        c.id === id
-          ? { ...c, status: "REVOKED" }
-          : c
+      contracts: state.contracts.filter(
+        (c) => c.id !== id
+      ),
+    })),
+
+  /* BLUEPRINT */
+
+  createBlueprint: (name) =>
+    set((state) => ({
+      blueprints: [
+        ...state.blueprints,
+        {
+          id: nanoid(),
+          name,
+          fields: [],
+        },
+      ],
+    })),
+
+  addField: (blueprintId, field) =>
+    set((state) => ({
+      blueprints: state.blueprints.map((b) =>
+        b.id === blueprintId
+          ? {
+              ...b,
+              fields: [...b.fields, field],
+            }
+          : b
       ),
     })),
 }));
