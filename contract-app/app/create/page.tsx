@@ -6,11 +6,17 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 export default function CreateContract() {
-  const { createContract } = useStore();
+  const {
+    createContract,
+    blueprints,
+  } = useStore();
+
   const router = useRouter();
 
-  const [blueprintName, setName] = useState("");
-  const [clientName, setClient] = useState("");
+  const [blueprintId, setBlueprintId] =
+    useState("");
+  const [clientName, setClient] =
+    useState("");
 
   const today = new Date().toLocaleDateString(
     "en-GB",
@@ -21,20 +27,39 @@ export default function CreateContract() {
     }
   );
 
-  function handleSubmit(e: React.FormEvent) {
+  const selectedBlueprint =
+    blueprints.find(
+      (b) => b.id === blueprintId
+    );
+
+  function handleSubmit(
+    e: React.FormEvent
+  ) {
     e.preventDefault();
+
+    if (!blueprintId) {
+      toast.error(
+        "Please select a blueprint"
+      );
+      return;
+    }
 
     try {
       createContract({
-        blueprintName,
+        blueprintId,
+        blueprintName:
+          selectedBlueprint?.name,
         clientName,
+        companyName:
+          "Eurusys Technologies LLC",
+        date: today,
       });
 
       toast.success(
-        "Contract created successfully!"
+        "Contract created successfully"
       );
       router.push("/");
-    } catch (err) {
+    } catch {
       toast.error("Something went wrong");
     }
   }
@@ -46,25 +71,43 @@ export default function CreateContract() {
         Create New Contract
       </h1>
 
+      {/* FORM */}
       <form
         onSubmit={handleSubmit}
-        className="bg-white border rounded-xl p-6 space-y-5 shadow-sm"
+        className="bg-white border rounded-xl p-6 space-y-5"
       >
+        {/* BLUEPRINT */}
         <div>
           <label className="text-sm font-medium">
-            Contract Name
+            Select Template
           </label>
-          <input
+
+          <select
             required
-            value={blueprintName}
+            value={blueprintId}
             onChange={(e) =>
-              setName(e.target.value)
+              setBlueprintId(
+                e.target.value
+              )
             }
-            placeholder="NDA Agreement"
             className="w-full border rounded-md px-4 py-2 mt-1 text-sm"
-          />
+          >
+            <option value="">
+              Choose blueprint
+            </option>
+
+            {blueprints.map((b) => (
+              <option
+                key={b.id}
+                value={b.id}
+              >
+                {b.name}
+              </option>
+            ))}
+          </select>
         </div>
 
+        {/* CLIENT */}
         <div>
           <label className="text-sm font-medium">
             Client Name
@@ -75,20 +118,20 @@ export default function CreateContract() {
             onChange={(e) =>
               setClient(e.target.value)
             }
-            placeholder="Acme Corp"
+            placeholder="Acme Corporation"
             className="w-full border rounded-md px-4 py-2 mt-1 text-sm"
           />
         </div>
 
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium transition"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium"
         >
           Create Contract
         </button>
       </form>
 
-      {/* LIVE PREVIEW */}
+      {/* PREVIEW */}
       <div className="mt-10">
         <h2 className="font-medium mb-3">
           Live Preview
@@ -97,23 +140,24 @@ export default function CreateContract() {
         <div className="bg-white border rounded-lg p-6">
 
           <h3 className="text-lg font-semibold text-center">
-            {blueprintName ||
+            {selectedBlueprint?.name ||
               "Contract Title"}
           </h3>
 
-          <p className="text-sm text-slate-500 text-center mb-4">
-            Client:{" "}
+          <p className="text-sm text-slate-500 text-center">
+            Client:
             {clientName || "Client Name"}
           </p>
 
-          <p className="text-xs text-slate-400 text-center mb-6">
+          <p className="text-xs text-slate-400 text-center mb-5">
             Date: {today}
           </p>
 
           <div className="space-y-3 text-sm leading-relaxed">
 
             <p>
-              This agreement is made between{" "}
+              This agreement is entered on{" "}
+              <b>{today}</b> between{" "}
               <b>
                 {clientName || "Client"}
               </b>{" "}
@@ -124,19 +168,17 @@ export default function CreateContract() {
               .
             </p>
 
-            <p>
-              Eurusys Technologies LLC is a
-              technology-focused company
-              delivering smart transformation
-              solutions across the UAE and
-              beyond.
-            </p>
-
-            <p>
-              All confidential information must
-              remain protected and shall not be
-              disclosed to any third party.
-            </p>
+            {/* DYNAMIC SECTIONS */}
+            {selectedBlueprint?.sections.map(
+              (s, i) => (
+                <div key={s.id}>
+                  <p className="font-medium">
+                    {i + 1}. {s.title}
+                  </p>
+                  <p>{s.content}</p>
+                </div>
+              )
+            )}
 
             <div className="border-t pt-4 mt-4">
               <p>

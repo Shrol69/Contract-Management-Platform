@@ -46,7 +46,7 @@ export default function ClientLayout({
   },
   {
     name: "Blueprints",
-    href: "/create",
+    href: "/blueprints",
     icon: FileText,
   },
   {

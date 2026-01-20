@@ -1,89 +1,114 @@
 import { create } from "zustand";
 import { nanoid } from "nanoid";
 
-type Field = {
+type Section = {
   id: string;
-  type: "text" | "date" | "signature" | "checkbox";
-  label: string;
-  x: number;
-  y: number;
+  title: string;
+  content: string;
 };
 
 type Blueprint = {
   id: string;
   name: string;
-  fields: Field[];
+  sections: Section[];
+};
+
+type Contract = {
+  id: string;
+  blueprintId: string;
+  blueprintName: string;
+  clientName: string;
+  companyName: string;
+  date: string;
+  status: string;
+  createdAt: Date;
 };
 
 type Store = {
-  contracts: any[];
   blueprints: Blueprint[];
+  contracts: Contract[];
+
+  createBlueprint: (name: string) => void;
+  addSection: (id: string) => void;
+  updateSection: (
+    bid: string,
+    sid: string,
+    field: string,
+    value: string
+  ) => void;
 
   createContract: (c: any) => void;
   updateStatus: (id: string, status: string) => void;
-  revokeContract: (id: string) => void;
-
-  createBlueprint: (name: string) => void;
-  addField: (
-    blueprintId: string,
-    field: Field
-  ) => void;
 };
 
 export const useStore = create<Store>((set) => ({
-  contracts: [],
   blueprints: [],
+  contracts: [],
 
-  createContract: (contract) =>
-    set((state) => ({
+  createBlueprint: (name) =>
+    set((s) => ({
+      blueprints: [
+        ...s.blueprints,
+        {
+          id: nanoid(),
+          name,
+          sections: [],
+        },
+      ],
+    })),
+
+  addSection: (id) =>
+    set((s) => ({
+      blueprints: s.blueprints.map((b) =>
+        b.id === id
+          ? {
+              ...b,
+              sections: [
+                ...b.sections,
+                {
+                  id: nanoid(),
+                  title: "New Section",
+                  content: "",
+                },
+              ],
+            }
+          : b
+      ),
+    })),
+
+  updateSection: (bid, sid, field, value) =>
+    set((s) => ({
+      blueprints: s.blueprints.map((b) =>
+        b.id === bid
+          ? {
+              ...b,
+              sections: b.sections.map((sec) =>
+                sec.id === sid
+                  ? { ...sec, [field]: value }
+                  : sec
+              ),
+            }
+          : b
+      ),
+    })),
+
+  createContract: (c) =>
+    set((s) => ({
       contracts: [
-        ...state.contracts,
+        ...s.contracts,
         {
           id: nanoid(),
           status: "CREATED",
           createdAt: new Date(),
-          ...contract,
+          ...c,
         },
       ],
     })),
 
   updateStatus: (id, status) =>
-    set((state) => ({
-      contracts: state.contracts.map((c) =>
+    set((s) => ({
+      contracts: s.contracts.map((c) =>
         c.id === id ? { ...c, status } : c
-      ),
-    })),
-
-  revokeContract: (id) =>
-    set((state) => ({
-      contracts: state.contracts.filter(
-        (c) => c.id !== id
-      ),
-    })),
-
-  /* BLUEPRINT */
-
-  createBlueprint: (name) =>
-    set((state) => ({
-      blueprints: [
-        ...state.blueprints,
-        {
-          id: nanoid(),
-          name,
-          fields: [],
-        },
-      ],
-    })),
-
-  addField: (blueprintId, field) =>
-    set((state) => ({
-      blueprints: state.blueprints.map((b) =>
-        b.id === blueprintId
-          ? {
-              ...b,
-              fields: [...b.fields, field],
-            }
-          : b
       ),
     })),
 }));
