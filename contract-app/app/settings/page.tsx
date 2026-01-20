@@ -1,101 +1,106 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useStore } from "@/store/useStore";
+import { useState } from "react";
 import toast from "react-hot-toast";
 
+/* TYPES */
+type Company = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+};
+
 export default function Settings() {
-  const [name, setName] = useState("");
-  const [role, setRole] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { company, updateCompany } = useStore();
 
-  useEffect(() => {
-    const saved = localStorage.getItem("settings");
-
-    if (saved) {
-      const data = JSON.parse(saved);
-      setName(data.name);
-      setRole(data.role);
-    } else {
-      setName("Ayush Gaykar");
-      setRole("User");
-    }
-  }, []);
+  const [form, setForm] =
+    useState<Company>(company);
 
   function handleSave() {
-    setLoading(true);
-
-    setTimeout(() => {
-      localStorage.setItem(
-        "settings",
-        JSON.stringify({
-          name,
-          role,
-        })
-      );
-
-      toast.success("Profile updated!");
-      setLoading(false);
-    }, 400);
+    updateCompany(form);
+    toast.success("Company profile updated");
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-xl mx-auto space-y-6">
 
-      <h1 className="text-2xl font-semibold mb-6">
-        Settings
+      <h1 className="text-2xl font-semibold">
+        Company Profile
       </h1>
 
-      <div className="bg-white border rounded-xl p-8 space-y-6 shadow-sm">
+      <div className="bg-white border rounded-xl p-6 space-y-4">
 
-        {/* Profile */}
-        <div>
-          <h2 className="font-medium mb-4">
-            Profile Information
-          </h2>
+        <Input
+          label="Company Name"
+          value={form.name}
+          onChange={(v) =>
+            setForm({ ...form, name: v })
+          }
+        />
 
-          <div className="grid grid-cols-2 gap-5">
+        <Input
+          label="Email"
+          value={form.email}
+          onChange={(v) =>
+            setForm({ ...form, email: v })
+          }
+        />
 
-            <div>
-              <label className="text-sm text-slate-600">
-                Full Name
-              </label>
-              <input
-                value={name}
-                onChange={(e) =>
-                  setName(e.target.value)
-                }
-                className="mt-1 w-full border px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Your name"
-              />
-            </div>
+        <Input
+          label="Phone"
+          value={form.phone}
+          onChange={(v) =>
+            setForm({ ...form, phone: v })
+          }
+        />
 
-            <div>
-              <label className="text-sm text-slate-600">
-                Role
-              </label>
-              <input
-                value={role}
-                onChange={(e) =>
-                  setRole(e.target.value)
-                }
-                className="mt-1 w-full border px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Your role"
-              />
-            </div>
+        <Input
+          label="Address"
+          value={form.address}
+          onChange={(v) =>
+            setForm({ ...form, address: v })
+          }
+        />
 
-          </div>
-        </div>
-
-        <div className="flex justify-end">
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
-          >
-            {loading ? "Saving..." : "Save Changes"}
-          </button>
-        </div>
+        <button
+          onClick={handleSave}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm transition"
+        >
+          Save Changes
+        </button>
       </div>
+    </div>
+  );
+}
+
+/* INPUT COMPONENT */
+
+type InputProps = {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+};
+
+function Input({
+  label,
+  value,
+  onChange,
+}: InputProps) {
+  return (
+    <div>
+      <label className="text-sm font-medium">
+        {label}
+      </label>
+
+      <input
+        value={value}
+        onChange={(e) =>
+          onChange(e.target.value)
+        }
+        className="w-full border px-4 py-2 rounded-md text-sm mt-1"
+      />
     </div>
   );
 }

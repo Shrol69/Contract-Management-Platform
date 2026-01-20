@@ -7,13 +7,31 @@ import { ArrowLeft, Download } from "lucide-react";
 import jsPDF from "jspdf";
 import { useState } from "react";
 
+/* TYPES */
+
+type ActionColor =
+  | "green"
+  | "blue"
+  | "purple"
+  | "slate";
+
+type ActionCardProps = {
+  title: string;
+  desc: string;
+  btn: string;
+  color: ActionColor;
+  onClick: () => void;
+};
+
+/* CONSTANTS */
+
 const steps = [
   "CREATED",
   "APPROVED",
   "SENT",
   "SIGNED",
   "LOCKED",
-];
+] as const;
 
 export default function ContractDetail() {
   const { id } = useParams();
@@ -32,16 +50,16 @@ export default function ContractDetail() {
     (c) => c.id === id
   );
 
-  if (!contract)
+  if (!contract) {
     return (
       <div className="p-6">
         Contract not found
       </div>
     );
+  }
 
   const blueprint = blueprints.find(
-    (b) =>
-      b.id === contract.blueprintId
+    (b) => b.id === contract.blueprintId
   );
 
   const currentStep =
@@ -66,6 +84,7 @@ export default function ContractDetail() {
       document.getElementById(
         "contract-preview"
       );
+
     if (!node) return;
 
     const domtoimage =
@@ -104,8 +123,16 @@ export default function ContractDetail() {
         .replace(/\s+/g, "_")
         .toLowerCase();
 
+    const safeName =
+      contract.blueprintName
+        .replace(/\s+/g, "_")
+        .toLowerCase();
+
     pdf.save(
-      `eurusys_${safeClient}_contract.pdf`
+      `eurusys_${safeClient}_${safeName}_${today.replace(
+        / /g,
+        "_"
+      )}.pdf`
     );
 
     setDownloading(false);
@@ -136,16 +163,23 @@ export default function ContractDetail() {
               </h1>
               <p className="text-slate-500">
                 Client:
-                {contract.clientName}
+                <span className="font-medium ml-1">
+                  {contract.clientName}
+                </span>
               </p>
             </div>
 
             <div className="flex items-center gap-3">
               <StatusBadge
-                status={
-                  contract.status
-                }
+                status={contract.status}
               />
+              <Link
+  href={`/contract/${contract.id}/edit`}
+  className="bg-slate-200 px-3 py-2 rounded-md text-sm"
+>
+  Edit
+</Link>
+
 
               <button
                 onClick={downloadPDF}
@@ -162,9 +196,9 @@ export default function ContractDetail() {
 
           {/* STEPPER */}
           <div className="flex justify-between mb-10">
-            {steps.map((s, i) => (
+            {steps.map((_, i) => (
               <div
-                key={s}
+                key={i}
                 className="flex-1 flex items-center"
               >
                 <div
@@ -178,13 +212,11 @@ export default function ContractDetail() {
                   {i + 1}
                 </div>
 
-                {i !==
-                  steps.length - 1 && (
+                {i !== steps.length - 1 && (
                   <div
                     className={`flex-1 h-1 mx-2
                     ${
-                      i <
-                      currentStep
+                      i < currentStep
                         ? "bg-blue-600"
                         : "bg-slate-200"
                     }`}
@@ -201,7 +233,7 @@ export default function ContractDetail() {
               "CREATED" && (
               <ActionCard
                 title="Approve contract"
-                desc="Review and approve this contract"
+                desc="Review and approve"
                 btn="Approve"
                 color="green"
                 onClick={() =>
@@ -217,7 +249,7 @@ export default function ContractDetail() {
               "APPROVED" && (
               <ActionCard
                 title="Send to client"
-                desc="Client will receive email"
+                desc="Email simulation"
                 btn="Send"
                 color="blue"
                 onClick={() =>
@@ -232,9 +264,9 @@ export default function ContractDetail() {
             {contract.status ===
               "SENT" && (
               <ActionCard
-                title="Awaiting signature"
+                title="Await signature"
                 desc="Mark when signed"
-                btn="Mark Signed"
+                btn="Signed"
                 color="purple"
                 onClick={() =>
                   updateStatus(
@@ -249,7 +281,7 @@ export default function ContractDetail() {
               "SIGNED" && (
               <ActionCard
                 title="Lock contract"
-                desc="Prevent further edits"
+                desc="Prevent changes"
                 btn="Lock"
                 color="slate"
                 onClick={() =>
@@ -266,27 +298,30 @@ export default function ContractDetail() {
         {/* PREVIEW */}
         <div
           id="contract-preview"
-          className="bg-white border rounded-lg p-8 h-fit"
+          className="bg-white border rounded-lg p-8 h-fit text-sm"
         >
           <h2 className="text-center text-lg font-bold">
-            EURUSYS LLC
+            {contract.companyName ||
+              "EURUSYS LLC"}
           </h2>
 
-          <p className="text-center text-sm mb-6">
-            CLIENT CONTRACT
+          <p className="text-center mb-6">
+            OFFICIAL AGREEMENT
           </p>
 
-          <p className="text-sm mb-4">
+          <p className="mb-4">
             Client:
-            <b>
+            <b className="ml-1">
               {contract.clientName}
             </b>
             <br />
             Date:
-            <b>{today}</b>
+            <b className="ml-1">
+              {today}
+            </b>
           </p>
 
-          {/* SECTIONS */}
+          {/* TEMPLATE SECTIONS */}
           {blueprint?.sections.map(
             (s, i) => (
               <div
@@ -296,21 +331,21 @@ export default function ContractDetail() {
                 <h3 className="font-semibold">
                   {i + 1}. {s.title}
                 </h3>
-                <p className="text-sm">
-                  {s.content}
-                </p>
+                <p>{s.content}</p>
               </div>
             )
           )}
 
-          <div className="border-t pt-6 mt-8 text-sm">
+          <div className="border-t pt-6 mt-8">
             <p>
               Signature:
               ___________________
             </p>
             <p className="mt-2">
               Date:
-              <b>{today}</b>
+              <b className="ml-1">
+                {today}
+              </b>
             </p>
           </div>
         </div>
@@ -320,14 +355,15 @@ export default function ContractDetail() {
 }
 
 /* ACTION CARD */
+
 function ActionCard({
   title,
   desc,
   btn,
   onClick,
   color,
-}: any) {
-  const map: any = {
+}: ActionCardProps) {
+  const map: Record<ActionColor, string> = {
     green:
       "bg-green-50 border-green-200 text-green-700",
     blue:

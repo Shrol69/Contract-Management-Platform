@@ -10,6 +10,14 @@ import {
   Menu,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ClipboardList } from "lucide-react";
+import { Info } from "lucide-react";
+
+
+type Profile = {
+  name: string;
+  role: string;
+};
 
 export default function ClientLayout({
   children,
@@ -19,13 +27,17 @@ export default function ClientLayout({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  const [profile, setProfile] = useState({
-    name: "Ayush Gaykar",
-    role: "Admin",
+  const [mounted, setMounted] = useState(false);
+
+  const [profile, setProfile] = useState<Profile>({
+    name: "Loading...",
+    role: "Loading...",
   });
 
-  // Load profile from settings
+  // CLIENT ONLY
   useEffect(() => {
+    setMounted(true);
+
     const saved =
       localStorage.getItem("settings");
 
@@ -35,36 +47,52 @@ export default function ClientLayout({
         name: data.name,
         role: data.role,
       });
+    } else {
+      setProfile({
+        name: "Ayush Gaykar",
+        role: "Admin",
+      });
     }
   }, []);
 
- const navItems = [
-  {
-    name: "Dashboard",
-    href: "/",
-    icon: LayoutDashboard,
+  if (!mounted) return null; // prevents hydration mismatch
+
+  const navItems = [
+    {
+      name: "Dashboard",
+      href: "/",
+      icon: LayoutDashboard,
+    },
+    {
+      name: "Blueprints",
+      href: "/blueprints",
+      icon: FileText,
+    },
+    {
+      name: "Contracts",
+      href: "/",
+      icon: FileText,
+    },
+    {
+      name: "Settings",
+      href: "/settings",
+      icon: Settings,
+    },
+    {
+  name: "Audit Logs",
+  href: "/logs",
+  icon: ClipboardList,
+}, {
+    name: "About",
+    href: "/about",
+    icon: Info,
   },
-  {
-    name: "Blueprints",
-    href: "/blueprints",
-    icon: FileText,
-  },
-  {
-    name: "Contracts",
-    href: "/",
-    icon: FileText,
-  },
-  {
-    name: "Settings",
-    href: "/settings",
-    icon: Settings,
-  },
-];
+
+  ];
 
   return (
     <div className="bg-slate-50 text-slate-900 flex h-screen overflow-hidden">
 
-      {/* Mobile overlay */}
       {open && (
         <div
           onClick={() => setOpen(false)}
@@ -72,7 +100,7 @@ export default function ClientLayout({
         />
       )}
 
-      {/* Sidebar */}
+      {/* SIDEBAR */}
       <aside
         className={`fixed md:static z-50 w-64 h-full bg-white border-r
         transform ${
@@ -80,7 +108,6 @@ export default function ClientLayout({
         } 
         md:translate-x-0 transition-all duration-200`}
       >
-        {/* Brand */}
         <div className="p-6 border-b">
           <h1 className="text-xl font-bold text-blue-800">
             ContractOS
@@ -90,7 +117,6 @@ export default function ClientLayout({
           </p>
         </div>
 
-        {/* Nav */}
         <nav className="p-4 space-y-1">
           {navItems.map((item) => {
             const active =
@@ -115,10 +141,9 @@ export default function ClientLayout({
           })}
         </nav>
 
-        {/* User */}
+        {/* USER */}
         <div className="p-4 border-t">
           <div className="flex items-center gap-3">
-
             <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold text-sm">
               {profile.name[0]}
             </div>
@@ -135,10 +160,9 @@ export default function ClientLayout({
         </div>
       </aside>
 
-      {/* Main */}
+      {/* MAIN */}
       <div className="flex-1 flex flex-col">
 
-        {/* Top bar */}
         <header className="h-14 bg-white border-b px-6 flex items-center justify-between">
           <button
             className="md:hidden"
@@ -154,7 +178,6 @@ export default function ClientLayout({
           <User className="w-5 h-5 text-slate-600" />
         </header>
 
-        {/* Page */}
         <main className="flex-1 overflow-auto p-6">
           {children}
         </main>

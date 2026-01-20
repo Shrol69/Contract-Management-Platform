@@ -2,9 +2,10 @@
 
 import { useStore } from "@/store/useStore";
 import { useState } from "react";
+import jsPDF from "jspdf";
+import toast from "react-hot-toast";
 
 export default function Blueprints() {
-
   const {
     blueprints,
     createBlueprint,
@@ -13,16 +14,59 @@ export default function Blueprints() {
   } = useStore();
 
   const [name, setName] = useState("");
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] =
+    useState<string | null>(null);
 
-  const activeBlueprint = blueprints.find(
+  const active = blueprints.find(
     (b) => b.id === activeId
   );
 
   function handleCreate() {
     if (!name.trim()) return;
     createBlueprint(name);
+    toast.success("Template created");
     setName("");
+  }
+
+  /* EXPORT PDF */
+  function exportPDF() {
+    if (!active) return;
+
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    let y = 20;
+    pdf.setFontSize(16);
+    pdf.text(active.name, 105, y, {
+      align: "center",
+    });
+
+    y += 15;
+
+    active.sections.forEach((s, i) => {
+      pdf.setFontSize(12);
+      pdf.text(
+        `${i + 1}. ${s.title}`,
+        10,
+        y
+      );
+      y += 8;
+
+      pdf.setFontSize(10);
+      pdf.text(
+        s.content,
+        10,
+        y,
+        { maxWidth: 190 }
+      );
+      y += 20;
+    });
+
+    pdf.save(
+      `${active.name.replace(
+        /\s/g,
+        "_"
+      )}.pdf`
+    );
   }
 
   return (
@@ -59,10 +103,9 @@ export default function Blueprints() {
 
       <div className="grid grid-cols-3 gap-6">
 
-        {/* LEFT - LIST */}
+        {/* LEFT */}
         <div className="bg-white border rounded-lg p-4 space-y-2">
-
-          <p className="text-sm font-medium mb-2">
+          <p className="text-sm font-medium">
             Templates
           </p>
 
@@ -90,10 +133,10 @@ export default function Blueprints() {
           ))}
         </div>
 
-        {/* RIGHT - EDITOR */}
+        {/* RIGHT */}
         <div className="col-span-2 bg-white border rounded-lg p-6">
 
-          {!activeBlueprint ? (
+          {!active ? (
             <div className="text-slate-400 text-sm text-center">
               Select a template to edit
             </div>
@@ -101,27 +144,36 @@ export default function Blueprints() {
             <>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="font-semibold">
-                  {activeBlueprint.name}
+                  {active.name}
                 </h2>
 
-                <button
-                  onClick={() =>
-                    addSection(activeBlueprint.id)
-                  }
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  + Add section
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() =>
+                      addSection(active.id)
+                    }
+                    className="text-sm text-blue-600"
+                  >
+                    + Add section
+                  </button>
+
+                  <button
+                    onClick={exportPDF}
+                    className="text-sm bg-black text-white px-3 py-1 rounded"
+                  >
+                    Export PDF
+                  </button>
+                </div>
               </div>
 
-              {activeBlueprint.sections.length === 0 && (
+              {active.sections.length === 0 && (
                 <p className="text-sm text-slate-400">
                   No sections yet
                 </p>
               )}
 
               <div className="space-y-4">
-                {activeBlueprint.sections.map(
+                {active.sections.map(
                   (s, i) => (
                     <div
                       key={s.id}
@@ -131,7 +183,7 @@ export default function Blueprints() {
                         value={s.title}
                         onChange={(e) =>
                           updateSection(
-                            activeBlueprint.id,
+                            active.id,
                             s.id,
                             "title",
                             e.target.value
@@ -147,19 +199,42 @@ export default function Blueprints() {
                         value={s.content}
                         onChange={(e) =>
                           updateSection(
-                            activeBlueprint.id,
+                            active.id,
                             s.id,
                             "content",
                             e.target.value
                           )
                         }
                         rows={4}
-                        placeholder="Write section content..."
+                        placeholder="Write legal content..."
                         className="border w-full px-3 py-2 rounded text-sm"
                       />
                     </div>
                   )
                 )}
+              </div>
+
+              {/* PREVIEW */}
+              <div className="mt-8 border-t pt-6">
+                <p className="font-medium mb-3">
+                  Preview
+                </p>
+
+                <div className="space-y-4 text-sm leading-relaxed">
+                  {active.sections.map(
+                    (s, i) => (
+                      <div key={s.id}>
+                        <p className="font-semibold">
+                          {i + 1}.{" "}
+                          {s.title}
+                        </p>
+                        <p className="text-slate-600">
+                          {s.content}
+                        </p>
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
             </>
           )}
