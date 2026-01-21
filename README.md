@@ -1,21 +1,49 @@
-# Contract Management Platform
+# 📄 Contract Management Platform
 
-A robust frontend application for managing the lifecycle of digital contracts, built with Next.js and TypeScript.
+A modern Contract Management web application built using **Next.js (App Router)**, **TypeScript**, **Tailwind CSS**, and **Zustand** for state management.
 
-## 🚀 Setup Instructions
-1. `npm install`
-2. `npm run dev`
-3. Open http://localhost:3000
+This project allows users to:
+- Create contracts
+- Track contract lifecycle
+- Update contract status
+- Preview contracts
+- Download contracts as PDF
+- Manage blueprints (templates)
 
-## 🛠 Tech Stack & Decisions
-- **Next.js (App Router):** Chosen for modern architecture and server-side capabilities.
-- **Zustand:** Selected for state management. It provides a global store without the boilerplate of Redux, perfect for handling the `blueprints` and `contracts` arrays.
-- **Tailwind CSS + shadcn/ui:** Used to ensure a clean, accessible, and professional UI without writing custom CSS from scratch.
+---
 
-## 🏗 Architecture
-- **Store (`/store`):** Holds the application state. It includes logic to prevent illegal state transitions (e.g., you cannot edit a LOCKED contract).
-- **Types (`/types`):** Strict TypeScript definitions ensure data consistency across the app.
+## 🚀 Tech Stack
 
-## ✅ Assumptions
-- I assumed that once a contract is 'Sent', the text content cannot be edited, only signed.
-- Data is persisted in memory (refreshing clears data) as per the "mocked persistence" requirement.
+- **Next.js 14 (App Router)**
+- **TypeScript**
+- **Tailwind CSS**
+- **Zustand** (State Management)
+- **Lucide Icons**
+- **jsPDF**
+- **dom-to-image-more**
+
+---
+
+## ✨ Features
+
+- Create new contracts
+- Dynamic contract routing
+- Status tracking (Created → Approved → Sent → Signed → Locked)
+- PDF generation
+- Clean UI with animations
+- Fully client-side application
+
+---
+
+## ⚙️ Installation & Local Setup
+
+```bash
+git clone https://github.com/your-username/Contract-Management-Platform.git
+cd contract-app
+npm install
+npm run dev
+---
+##   Then open:
+
+http://localhost:3000
+ ---
