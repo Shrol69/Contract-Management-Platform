@@ -11,6 +11,19 @@ import {
 import { BiBook } from "react-icons/bi";
 import { useEffect, useState } from "react";
 
+/* CHARTS */
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+} from "recharts";
+
 /* ================= HELPERS ================= */
 
 function useCountUp(target: number) {
@@ -57,7 +70,7 @@ export default function Dashboard() {
       c.status === "LOCKED"
   ).length;
 
-  /* MONTHLY STATS */
+  /* MONTHLY TREND */
   const currentMonth = new Date().getMonth();
 
   const thisMonth = contracts.filter(
@@ -151,6 +164,32 @@ export default function Dashboard() {
           }
         />
 
+      </div>
+
+      {/* CHARTS */}
+      <div className="grid lg:grid-cols-2 gap-6">
+
+        {/* PIE */}
+        <div className="bg-white border rounded-xl p-6">
+          <h3 className="font-semibold mb-4">
+            Contract Distribution
+          </h3>
+
+          <StatusPie
+            active={active}
+            pending={pending}
+            completed={completed}
+          />
+        </div>
+
+        {/* BAR */}
+        <div className="bg-white border rounded-xl p-6">
+          <h3 className="font-semibold mb-4">
+            Monthly Activity
+          </h3>
+
+          <MonthlyBar contracts={contracts} />
+        </div>
       </div>
 
       {/* MAIN GRID */}
@@ -255,13 +294,7 @@ function Kpi({
   desc,
   percent,
   progress,
-}: {
-  title: string;
-  value: number;
-  desc: string;
-  percent?: number;
-  progress?: number;
-}) {
+}: any) {
   const animated = useCountUp(value);
 
   return (
@@ -299,11 +332,10 @@ function Kpi({
         {desc}
       </p>
 
-      {/* PROGRESS BAR */}
       {progress !== undefined && (
         <div className="w-full bg-slate-100 rounded-full h-2">
           <div
-            className="bg-blue-600 h-2 rounded-full transition-all"
+            className="bg-blue-600 h-2 rounded-full"
             style={{
               width: `${progress}%`,
             }}
@@ -314,17 +346,94 @@ function Kpi({
   );
 }
 
+/* PIE */
+
+function StatusPie({
+  active,
+  pending,
+  completed,
+}: any) {
+  const data = [
+    { name: "Active", value: active },
+    { name: "Pending", value: pending },
+    { name: "Completed", value: completed },
+  ];
+
+  const colors = [
+    "#3b82f6",
+    "#f59e0b",
+    "#22c55e",
+  ];
+
+  return (
+    <div className="h-64">
+      <ResponsiveContainer>
+        <PieChart>
+          <Pie
+            data={data}
+            dataKey="value"
+            outerRadius={80}
+            label
+          >
+            {data.map((_, i) => (
+              <Cell
+                key={i}
+                fill={colors[i]}
+              />
+            ))}
+          </Pie>
+          <Tooltip />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+/* BAR */
+
+function MonthlyBar({
+  contracts,
+}: any) {
+  const months = [
+    "Jan","Feb","Mar","Apr","May","Jun",
+    "Jul","Aug","Sep","Oct","Nov","Dec"
+  ];
+
+  const data = months.map((m, i) => ({
+    name: m,
+    value: contracts.filter(
+      (c: any) =>
+        new Date(c.createdAt)
+          .getMonth() === i
+    ).length,
+  }));
+
+  return (
+    <div className="h-64">
+      <ResponsiveContainer>
+        <BarChart data={data}>
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Bar
+            dataKey="value"
+            fill="#3b82f6"
+            radius={[6,6,0,0]}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+/* CARD */
+
 function Card({
   title,
   subtitle,
   link,
   children,
-}: {
-  title: string;
-  subtitle: string;
-  link: string;
-  children: React.ReactNode;
-}) {
+}: any) {
   return (
     <div className="bg-white border rounded-xl p-6">
       <div className="flex justify-between items-center mb-4">
@@ -350,18 +459,13 @@ function Card({
   );
 }
 
+/* EMPTY */
+
 function Empty({
   icon,
   text,
   action,
-}: {
-  icon: React.ReactNode;
-  text: string;
-  action: {
-    label: string;
-    href: string;
-  };
-}) {
+}: any) {
   return (
     <div className="flex flex-col items-center justify-center text-center py-16 gap-3">
       <div className="text-slate-300">

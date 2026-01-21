@@ -4,7 +4,7 @@ import { useStore } from "@/store/useStore";
 import { useState } from "react";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function Blueprints() {
@@ -13,6 +13,7 @@ export default function Blueprints() {
     createBlueprint,
     addSection,
     updateSection,
+    deleteBlueprint, // 👈 NEW
   } = useStore();
 
   const router = useRouter();
@@ -30,6 +31,23 @@ export default function Blueprints() {
     createBlueprint(name);
     toast.success("Blueprint created");
     setName("");
+  }
+
+  function handleDelete(id: string) {
+    if (
+      !confirm(
+        "Are you sure? This blueprint will be permanently deleted."
+      )
+    )
+      return;
+
+    deleteBlueprint(id);
+
+    if (activeId === id) {
+      setActiveId(null);
+    }
+
+    toast.success("Blueprint deleted");
   }
 
   function exportPDF() {
@@ -90,8 +108,7 @@ export default function Blueprints() {
             Create Blueprint
           </h1>
           <p className="text-sm text-slate-500">
-            Design a reusable contract
-            template
+            Design a reusable contract template
           </p>
         </div>
 
@@ -107,15 +124,12 @@ export default function Blueprints() {
       {/* MAIN GRID */}
       <div className="grid md:grid-cols-2 gap-6">
 
-        {/* LEFT – DETAILS */}
+        {/* LEFT */}
         <div className="bg-white border rounded-xl p-6 shadow-sm space-y-5">
 
           <h3 className="font-semibold text-lg">
             Details
           </h3>
-          <p className="text-sm text-slate-500">
-            Basic blueprint information
-          </p>
 
           <input
             value={name}
@@ -148,24 +162,36 @@ export default function Blueprints() {
               {blueprints.map((b) => (
                 <div
                   key={b.id}
-                  onClick={() =>
-                    setActiveId(b.id)
-                  }
-                  className={`p-2 rounded text-sm cursor-pointer transition
+                  className={`p-2 rounded text-sm cursor-pointer transition flex justify-between items-center
                   ${
                     activeId === b.id
                       ? "bg-blue-50 text-blue-700 font-medium"
                       : "hover:bg-slate-100"
                   }`}
                 >
-                  {b.name}
+                  <span
+                    onClick={() =>
+                      setActiveId(b.id)
+                    }
+                  >
+                    {b.name}
+                  </span>
+
+                  <button
+                    onClick={() =>
+                      handleDelete(b.id)
+                    }
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* RIGHT – FIELD LAYOUT */}
+        {/* RIGHT */}
         <div className="bg-white border rounded-xl p-6 shadow-sm">
 
           <div className="flex justify-between items-center mb-4">
@@ -174,8 +200,7 @@ export default function Blueprints() {
                 Field Layout
               </h3>
               <p className="text-sm text-slate-500">
-                Drag fields to position
-                them on the document
+                Add legal sections
               </p>
             </div>
 
@@ -194,24 +219,15 @@ export default function Blueprints() {
 
           {!active ? (
             <div className="text-center text-slate-400 text-sm py-20 border rounded-lg">
-              Select a blueprint to
-              start editing
+              Select a blueprint to start editing
             </div>
           ) : (
             <div className="space-y-4">
-
-              {active.sections.length ===
-                0 && (
-                <p className="text-sm text-slate-400 text-center">
-                  No fields yet
-                </p>
-              )}
-
               {active.sections.map(
                 (s, i) => (
                   <div
                     key={s.id}
-                    className="border rounded-lg p-4 transition hover:shadow-sm"
+                    className="border rounded-lg p-4"
                   >
                     <input
                       value={s.title}
@@ -223,7 +239,7 @@ export default function Blueprints() {
                           e.target.value
                         )
                       }
-                      placeholder={`Field ${
+                      placeholder={`Section ${
                         i + 1
                       } title`}
                       className="border w-full px-3 py-2 rounded text-sm font-medium mb-2"
@@ -240,7 +256,7 @@ export default function Blueprints() {
                         )
                       }
                       rows={3}
-                      placeholder="Field description / text"
+                      placeholder="Legal content..."
                       className="border w-full px-3 py-2 rounded text-sm"
                     />
                   </div>
