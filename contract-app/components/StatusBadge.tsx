@@ -1,21 +1,23 @@
-import React from 'react';
+type Props = {
+  status: string;
+};
 
-export const StatusBadge = ({ status }: { status: string }) => {
-  const styles = {
-    CREATED: "bg-gray-100 text-gray-700 border-gray-200",
-    APPROVED: "bg-blue-50 text-blue-700 border-blue-200",
-    SENT: "bg-purple-50 text-purple-700 border-purple-200",
-    SIGNED: "bg-green-50 text-green-700 border-green-200",
-    LOCKED: "bg-gray-800 text-white border-gray-900",
-    REVOKED: "bg-red-50 text-red-700 border-red-200",
+export function StatusBadge({ status }: Props) {
+  const map: Record<string, string> = {
+    CREATED: "bg-slate-100 text-slate-600",
+    APPROVED: "bg-blue-100 text-blue-600",
+    SENT: "bg-yellow-100 text-yellow-600",
+    SIGNED: "bg-green-100 text-green-600",
+    LOCKED: "bg-purple-100 text-purple-600",
   };
 
-  // Default to gray if status is unknown
-  const currentStyle = styles[status as keyof typeof styles] || styles.CREATED;
-
   return (
-    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${currentStyle}`}>
+    <span
+      className={`px-3 py-1 rounded-full text-xs font-medium ${
+        map[status] || "bg-gray-100 text-gray-500"
+      }`}
+    >
       {status}
     </span>
   );
-};
+}
