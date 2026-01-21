@@ -2,8 +2,38 @@
 
 import { useStore } from "@/store/useStore";
 import Link from "next/link";
-import { FileText, Plus } from "lucide-react";
+import {
+  FileText,
+  Plus,
+  ArrowUpRight,
+  ArrowDownRight,
+} from "lucide-react";
 import { BiBook } from "react-icons/bi";
+import { useEffect, useState } from "react";
+
+/* ================= HELPERS ================= */
+
+function useCountUp(target: number) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let current = 0;
+    const step = Math.max(1, Math.floor(target / 25));
+
+    const interval = setInterval(() => {
+      current += step;
+      if (current >= target) {
+        current = target;
+        clearInterval(interval);
+      }
+      setCount(current);
+    }, 20);
+
+    return () => clearInterval(interval);
+  }, [target]);
+
+  return count;
+}
 
 /* ================= DASHBOARD ================= */
 
@@ -22,9 +52,27 @@ export default function Dashboard() {
   ).length;
 
   const completed = contracts.filter(
-    (c) => c.status === "SIGNED" ||
+    (c) =>
+      c.status === "SIGNED" ||
       c.status === "LOCKED"
   ).length;
+
+  /* MONTHLY STATS */
+  const currentMonth = new Date().getMonth();
+
+  const thisMonth = contracts.filter(
+    (c) =>
+      new Date(c.createdAt).getMonth() ===
+      currentMonth
+  ).length;
+
+  const lastMonth = contracts.filter(
+    (c) =>
+      new Date(c.createdAt).getMonth() ===
+      currentMonth - 1
+  ).length;
+
+  const trend = thisMonth - lastMonth;
 
   return (
     <div className="space-y-10">
@@ -61,26 +109,48 @@ export default function Dashboard() {
 
       {/* KPI */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
         <Kpi
           title="Total Blueprints"
           value={blueprints.length}
           desc="Reusable templates"
+          percent={trend}
+          progress={100}
         />
+
         <Kpi
           title="Active"
           value={active}
           desc="Created & Approved"
+          percent={5}
+          progress={
+            (active / contracts.length) * 100 ||
+            0
+          }
         />
+
         <Kpi
           title="Pending"
           value={pending}
           desc="Awaiting signature"
+          percent={-3}
+          progress={
+            (pending / contracts.length) * 100 ||
+            0
+          }
         />
+
         <Kpi
           title="Completed"
           value={completed}
           desc="Signed & Locked"
+          percent={12}
+          progress={
+            (completed / contracts.length) *
+              100 || 0
+          }
         />
+
       </div>
 
       {/* MAIN GRID */}
@@ -90,41 +160,44 @@ export default function Dashboard() {
         <Card
           title="Recent Contracts"
           subtitle="Latest contract activity"
-          link="/"
+          link="/contract"
         >
           {contracts.length === 0 ? (
             <Empty
               icon={<FileText />}
               text="No contracts yet"
               action={{
-                label: "Create your first contract",
+                label:
+                  "Create your first contract",
                 href: "/create",
               }}
             />
           ) : (
             <ul className="space-y-3">
-              {contracts.slice(0, 5).map((c) => (
-                <li
-                  key={c.id}
-                  className="flex justify-between items-center border rounded-md p-3 hover:bg-slate-50"
-                >
-                  <div>
-                    <p className="text-sm font-medium">
-                      {c.blueprintName}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {c.clientName}
-                    </p>
-                  </div>
-
-                  <Link
-                    href={`/contract/${c.id}`}
-                    className="text-blue-600 text-sm"
+              {contracts
+                .slice(0, 5)
+                .map((c) => (
+                  <li
+                    key={c.id}
+                    className="flex justify-between items-center border rounded-md p-3 hover:bg-slate-50"
                   >
-                    View
-                  </Link>
-                </li>
-              ))}
+                    <div>
+                      <p className="text-sm font-medium">
+                        {c.blueprintName}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {c.clientName}
+                      </p>
+                    </div>
+
+                    <Link
+                      href={`/contract/${c.id}`}
+                      className="text-blue-600 text-sm"
+                    >
+                      View
+                    </Link>
+                  </li>
+                ))}
             </ul>
           )}
         </Card>
@@ -140,29 +213,32 @@ export default function Dashboard() {
               icon={<FileText />}
               text="No blueprints yet"
               action={{
-                label: "Create your first blueprint",
+                label:
+                  "Create your first blueprint",
                 href: "/blueprints",
               }}
             />
           ) : (
             <ul className="space-y-3">
-              {blueprints.slice(0, 5).map((b) => (
-                <li
-                  key={b.id}
-                  className="flex justify-between items-center border rounded-md p-3 hover:bg-slate-50"
-                >
-                  <p className="text-sm font-medium">
-                    {b.name}
-                  </p>
-
-                  <Link
-                    href="/blueprints"
-                    className="text-blue-600 text-sm"
+              {blueprints
+                .slice(0, 5)
+                .map((b) => (
+                  <li
+                    key={b.id}
+                    className="flex justify-between items-center border rounded-md p-3 hover:bg-slate-50"
                   >
-                    Edit
-                  </Link>
-                </li>
-              ))}
+                    <p className="text-sm font-medium">
+                      {b.name}
+                    </p>
+
+                    <Link
+                      href="/blueprints"
+                      className="text-blue-600 text-sm"
+                    >
+                      Edit
+                    </Link>
+                  </li>
+                ))}
             </ul>
           )}
         </Card>
@@ -177,22 +253,63 @@ function Kpi({
   title,
   value,
   desc,
+  percent,
+  progress,
 }: {
   title: string;
   value: number;
   desc: string;
+  percent?: number;
+  progress?: number;
 }) {
+  const animated = useCountUp(value);
+
   return (
-    <div className="bg-white border rounded-xl p-5">
-      <p className="text-sm font-medium">
-        {title}
+    <div className="bg-white border rounded-xl p-5 space-y-2">
+
+      <div className="flex justify-between items-center">
+        <p className="text-sm font-medium">
+          {title}
+        </p>
+
+        {percent !== undefined && (
+          <span
+            className={`text-xs flex items-center gap-1
+            ${
+              percent >= 0
+                ? "text-green-600"
+                : "text-red-600"
+            }`}
+          >
+            {percent >= 0 ? (
+              <ArrowUpRight size={14} />
+            ) : (
+              <ArrowDownRight size={14} />
+            )}
+            {Math.abs(percent)}%
+          </span>
+        )}
+      </div>
+
+      <p className="text-3xl font-semibold">
+        {animated}
       </p>
-      <p className="text-3xl font-semibold mt-1">
-        {value}
-      </p>
-      <p className="text-xs text-slate-500 mt-1">
+
+      <p className="text-xs text-slate-500">
         {desc}
       </p>
+
+      {/* PROGRESS BAR */}
+      {progress !== undefined && (
+        <div className="w-full bg-slate-100 rounded-full h-2">
+          <div
+            className="bg-blue-600 h-2 rounded-full transition-all"
+            style={{
+              width: `${progress}%`,
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
