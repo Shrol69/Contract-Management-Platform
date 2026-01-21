@@ -36,7 +36,13 @@ export default function ContractDetail() {
   const contract = contracts.find(
     (c) => c.id === id
   );
-
+if (!contract) {
+  return (
+    <div className="p-10 text-center text-slate-400">
+      Contract not found
+    </div>
+  );
+}
   if (!contract) return <Skeleton />;
 
   const blueprint = blueprints.find(
