@@ -341,16 +341,20 @@ function InfoRow({
   );
 }
 
+type ActionColor = "blue" | "dark";
+
 function PrimaryAction({
   text,
   onClick,
   color,
-}: any) {
-  const map = {
-    blue:
-      "bg-blue-600 hover:bg-blue-700",
-    dark:
-      "bg-slate-900 hover:bg-black",
+}: {
+  text: string;
+  onClick: () => void;
+  color: ActionColor;
+}) {
+  const map: Record<ActionColor, string> = {
+    blue: "bg-blue-600 hover:bg-blue-700",
+    dark: "bg-slate-900 hover:bg-black",
   };
 
   return (
@@ -362,3 +366,7 @@ function PrimaryAction({
     </button>
   );
 }
+
+ 
+
+ 
