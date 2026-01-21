@@ -27,23 +27,20 @@ export default function ContractDetail() {
   const { id } = useParams();
   const router = useRouter();
 
-  const { contracts, blueprints, updateStatus } =
-    useStore();
-
-  const [downloading, setDownloading] =
-    useState(false);
+  const { contracts, blueprints, updateStatus } = useStore();
+  const [downloading, setDownloading] = useState(false);
 
   const contract = contracts.find(
     (c) => c.id === id
   );
-if (!contract) {
-  return (
-    <div className="p-10 text-center text-slate-400">
-      Contract not found
-    </div>
-  );
-}
-  if (!contract) return <Skeleton />;
+
+  if (!contract) {
+    return (
+      <div className="p-10 text-center text-slate-400">
+        Contract not found
+      </div>
+    );
+  }
 
   const blueprint = blueprints.find(
     (b) => b.id === contract.blueprintId
@@ -72,43 +69,49 @@ if (!contract) {
 
   /* PDF */
   async function downloadPDF() {
-    setDownloading(true);
+    if (!contract) return; // TS safety
 
-    const node =
-      document.getElementById(
-        "contract-preview"
+    try {
+      setDownloading(true);
+
+      const node =
+        document.getElementById(
+          "contract-preview"
+        );
+
+      if (!node) return;
+
+      const domtoimage =
+        (await import(
+          "dom-to-image-more"
+        )).default;
+
+      const dataUrl =
+        await domtoimage.toPng(node);
+
+      const pdf = new jsPDF(
+        "p",
+        "mm",
+        "a4"
       );
 
-    if (!node) return;
+      pdf.addImage(
+        dataUrl,
+        "PNG",
+        0,
+        0,
+        210,
+        297
+      );
 
-    const domtoimage =
-      (await import(
-        "dom-to-image-more"
-      )).default;
-
-    const dataUrl =
-      await domtoimage.toPng(node);
-
-    const pdf = new jsPDF(
-      "p",
-      "mm",
-      "a4"
-    );
-
-    pdf.addImage(
-      dataUrl,
-      "PNG",
-      0,
-      0,
-      210,
-      297
-    );
-
-    pdf.save(
-      `${contract.clientName}_${today}.pdf`
-    );
-
-    setDownloading(false);
+      pdf.save(
+        `${contract.clientName}_${today}.pdf`
+      );
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDownloading(false);
+    }
   }
 
   return (
@@ -116,7 +119,6 @@ if (!contract) {
 
       {/* HEADER */}
       <div>
-
         <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-sm text-slate-500 mb-3 hover:text-black"
@@ -154,7 +156,6 @@ if (!contract) {
         </p>
 
         <div className="flex justify-between">
-
           {steps.map((s, i) => (
             <div
               key={i}
@@ -196,14 +197,8 @@ if (!contract) {
             Contract Information
           </h3>
 
-          <InfoRow
-            label="Created"
-            value={today}
-          />
-          <InfoRow
-            label="Last updated"
-            value={today}
-          />
+          <InfoRow label="Created" value={today} />
+          <InfoRow label="Last updated" value={today} />
           <InfoRow
             label="Blueprint"
             value={blueprint?.name}
@@ -213,8 +208,7 @@ if (!contract) {
           {/* ACTIONS */}
           <div className="border-t pt-4 space-y-3">
 
-            {contract.status ===
-              "CREATED" && (
+            {contract.status === "CREATED" && (
               <PrimaryAction
                 text="Approve Contract"
                 color="blue"
@@ -227,8 +221,7 @@ if (!contract) {
               />
             )}
 
-            {contract.status ===
-              "APPROVED" && (
+            {contract.status === "APPROVED" && (
               <PrimaryAction
                 text="Send to Client"
                 color="blue"
@@ -241,8 +234,7 @@ if (!contract) {
               />
             )}
 
-            {contract.status ===
-              "SENT" && (
+            {contract.status === "SENT" && (
               <PrimaryAction
                 text="Mark as Signed"
                 color="blue"
@@ -255,8 +247,7 @@ if (!contract) {
               />
             )}
 
-            {contract.status ===
-              "SIGNED" && (
+            {contract.status === "SIGNED" && (
               <PrimaryAction
                 text="Lock Contract"
                 color="blue"
@@ -369,15 +360,5 @@ function PrimaryAction({
     >
       {text}
     </button>
-  );
-}
-
-function Skeleton() {
-  return (
-    <div className="animate-pulse space-y-6">
-      <div className="h-6 bg-slate-200 w-1/3 rounded" />
-      <div className="h-40 bg-slate-200 rounded" />
-      <div className="h-64 bg-slate-200 rounded" />
-    </div>
   );
 }
