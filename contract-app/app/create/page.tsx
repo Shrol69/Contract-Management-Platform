@@ -4,6 +4,7 @@ import { useStore } from "@/store/useStore";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { ArrowLeft } from "lucide-react";
 
 export default function CreateContract() {
   const {
@@ -33,11 +34,15 @@ export default function CreateContract() {
       (b) => b.id === blueprintId
     );
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(
+    e: React.FormEvent
+  ) {
     e.preventDefault();
 
     if (!blueprintId) {
-      toast.error("Select template");
+      toast.error(
+        "Please select a template"
+      );
       return;
     }
 
@@ -50,77 +55,176 @@ export default function CreateContract() {
       date: today,
     });
 
-    toast.success("Contract created");
+    toast.success(
+      "Contract created successfully"
+    );
     router.push("/");
   }
 
   return (
-    <div className="max-w-xl mx-auto">
+    <div className="max-w-7xl mx-auto space-y-8 animate-fadeIn">
 
-      <h1 className="text-2xl font-semibold mb-6">
-        Create Contract
-      </h1>
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white border rounded-xl p-6 space-y-5"
-      >
-        <select
-          required
-          value={blueprintId}
-          onChange={(e) =>
-            setBlueprintId(
-              e.target.value
-            )
-          }
-          className="w-full border px-4 py-2 rounded"
+        <div>
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-sm text-slate-500 mb-2"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
+
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Create Contract
+          </h1>
+          <p className="text-sm text-slate-500">
+            Generate a contract from
+            your templates
+          </p>
+        </div>
+
+        <button
+          form="create-form"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-sm font-medium"
         >
-          <option value="">
-            Select template
-          </option>
-          {blueprints.map((b) => (
-            <option
-              key={b.id}
-              value={b.id}
-            >
-              {b.name}
-            </option>
-          ))}
-        </select>
-
-        <input
-          required
-          value={clientName}
-          onChange={(e) =>
-            setClient(e.target.value)
-          }
-          placeholder="Client name"
-          className="w-full border px-4 py-2 rounded"
-        />
-
-        <button className="w-full bg-blue-600 text-white py-2 rounded">
-          Create
+          Save Contract
         </button>
-      </form>
+      </div>
 
-      {/* PREVIEW */}
-      <div className="mt-8 bg-white border p-6 rounded">
+      <div className="grid md:grid-cols-2 gap-6">
 
-        <h3 className="text-center font-semibold">
-          {selectedBlueprint?.name ||
-            "Contract"}
-        </h3>
+        {/* LEFT – DETAILS */}
+        <form
+          id="create-form"
+          onSubmit={handleSubmit}
+          className="bg-white border rounded-xl p-6 shadow-sm space-y-5"
+        >
+          <h3 className="font-semibold text-lg">
+            Contract Details
+          </h3>
 
-        <p className="text-center text-sm text-slate-500">
-          {clientName || "Client"} |{" "}
-          {today}
-        </p>
+          <div>
+            <label className="text-sm font-medium">
+              Template
+            </label>
 
-        <p className="mt-4 text-sm">
-          Agreement between{" "}
-          <b>{clientName}</b> and{" "}
-          <b>{company.name}</b>
-        </p>
+            <select
+              required
+              value={blueprintId}
+              onChange={(e) =>
+                setBlueprintId(
+                  e.target.value
+                )
+              }
+              className="w-full border px-4 py-2 rounded-md mt-1 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="">
+                Select blueprint
+              </option>
+
+              {blueprints.map((b) => (
+                <option
+                  key={b.id}
+                  value={b.id}
+                >
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">
+              Client Name
+            </label>
+
+            <input
+              required
+              value={clientName}
+              onChange={(e) =>
+                setClient(
+                  e.target.value
+                )
+              }
+              placeholder="Acme Corporation"
+              className="w-full border px-4 py-2 rounded-md mt-1 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium transition"
+          >
+            Create Contract
+          </button>
+        </form>
+
+        {/* RIGHT – LIVE PREVIEW */}
+        <div className="bg-white border rounded-xl p-6 shadow-sm">
+
+          <h3 className="text-lg font-semibold text-center">
+            {selectedBlueprint?.name ||
+              "Contract Title"}
+          </h3>
+
+          <p className="text-sm text-slate-500 text-center">
+            Client:{" "}
+            {clientName ||
+              "Client Name"}
+          </p>
+
+          <p className="text-xs text-slate-400 text-center mb-6">
+            Date: {today}
+          </p>
+
+          <div className="space-y-4 text-sm leading-relaxed">
+
+            <p>
+              This agreement is entered
+              on <b>{today}</b>{" "}
+              between{" "}
+              <b>
+                {clientName ||
+                  "Client"}
+              </b>{" "}
+              and{" "}
+              <b>
+                {company.name}
+              </b>
+              .
+            </p>
+
+            {selectedBlueprint?.sections.map(
+              (s, i) => (
+                <div
+                  key={s.id}
+                  className="slide-up"
+                >
+                  <p className="font-medium">
+                    {i + 1}.{" "}
+                    {s.title}
+                  </p>
+                  <p className="text-slate-600">
+                    {s.content}
+                  </p>
+                </div>
+              )
+            )}
+
+            <div className="border-t pt-4 mt-6">
+              <p>
+                Signature:
+                ___________________
+              </p>
+              <p className="mt-2">
+                Authorized by{" "}
+                {company.name}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

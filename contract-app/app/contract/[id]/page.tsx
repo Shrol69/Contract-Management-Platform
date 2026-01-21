@@ -3,47 +3,32 @@
 import { useParams, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import { StatusBadge } from "@/components/StatusBadge";
-import { ArrowLeft, Download } from "lucide-react";
+import {
+  ArrowLeft,
+  Download,
+  CheckCircle,
+  Send,
+  Pen,
+  Lock,
+} from "lucide-react";
 import jsPDF from "jspdf";
 import { useState } from "react";
 
-
-
-/* TYPES */
-
-type ActionColor =
-  | "green"
-  | "blue"
-  | "purple"
-  | "slate";
-
-type ActionCardProps = {
-  title: string;
-  desc: string;
-  btn: string;
-  color: ActionColor;
-  onClick: () => void;
-};
-
-/* CONSTANTS */
-
+/* STEPS */
 const steps = [
-  "CREATED",
-  "APPROVED",
-  "SENT",
-  "SIGNED",
-  "LOCKED",
-] as const;
+  { label: "Created", icon: <Pen size={18} /> },
+  { label: "Approved", icon: <CheckCircle size={18} /> },
+  { label: "Sent", icon: <Send size={18} /> },
+  { label: "Signed", icon: <Pen size={18} /> },
+  { label: "Locked", icon: <Lock size={18} /> },
+];
 
 export default function ContractDetail() {
   const { id } = useParams();
   const router = useRouter();
 
-  const {
-    contracts,
-    blueprints,
-    updateStatus,
-  } = useStore();
+  const { contracts, blueprints, updateStatus } =
+    useStore();
 
   const [downloading, setDownloading] =
     useState(false);
@@ -52,34 +37,35 @@ export default function ContractDetail() {
     (c) => c.id === id
   );
 
-  if (!contract) {
-    return (
-      <div className="p-6">
-        Contract not found
-      </div>
-    );
-  }
+  if (!contract) return <Skeleton />;
 
   const blueprint = blueprints.find(
     (b) => b.id === contract.blueprintId
   );
 
+  const statusMap = [
+    "CREATED",
+    "APPROVED",
+    "SENT",
+    "SIGNED",
+    "LOCKED",
+  ];
+
   const currentStep =
-    steps.indexOf(contract.status);
+    statusMap.indexOf(contract.status);
 
-  const today = new Date().toLocaleDateString(
-    "en-GB",
-    {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    }
-  );
+  const today =
+    new Date().toLocaleDateString(
+      "en-GB",
+      {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }
+    );
 
-  /* DOWNLOAD PDF */
+  /* PDF */
   async function downloadPDF() {
-    if (typeof window === "undefined") return;
-
     setDownloading(true);
 
     const node =
@@ -103,134 +89,129 @@ export default function ContractDetail() {
       "a4"
     );
 
-    const imgProps =
-      pdf.getImageProperties(dataUrl);
-
-    const pdfWidth = 210;
-    const pdfHeight =
-      (imgProps.height * pdfWidth) /
-      imgProps.width;
-
     pdf.addImage(
       dataUrl,
       "PNG",
       0,
       0,
-      pdfWidth,
-      pdfHeight
+      210,
+      297
     );
 
-    const safeClient =
-      contract.clientName
-        .replace(/\s+/g, "_")
-        .toLowerCase();
-
-    const safeName =
-      contract.blueprintName
-        .replace(/\s+/g, "_")
-        .toLowerCase();
-
     pdf.save(
-      `eurusys_${safeClient}_${safeName}_${today.replace(
-        / /g,
-        "_"
-      )}.pdf`
+      `${contract.clientName}_${today}.pdf`
     );
 
     setDownloading(false);
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-7xl mx-auto space-y-8 animate-fadeIn">
 
-      {/* BACK */}
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-2 text-sm text-slate-500 mb-4 hover:text-black"
-      >
-        <ArrowLeft size={16} />
-        Back
-      </button>
+      {/* HEADER */}
+      <div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-sm text-slate-500 mb-3 hover:text-black"
+        >
+          <ArrowLeft size={16} />
+          Back
+        </button>
 
-        {/* LEFT PANEL */}
-        <div className="md:col-span-2 bg-white border rounded-xl p-6">
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {contract.blueprintName}
+          </h1>
 
-          {/* HEADER */}
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h1 className="text-2xl font-semibold">
-                {contract.blueprintName}
-              </h1>
-              <p className="text-slate-500">
-                Client:
-                <span className="font-medium ml-1">
-                  {contract.clientName}
-                </span>
+          <StatusBadge
+            status={contract.status}
+          />
+        </div>
+
+        <p className="text-sm text-slate-500 mt-1">
+          Client:
+          <span className="ml-1 font-medium">
+            {contract.clientName}
+          </span>
+        </p>
+      </div>
+
+      {/* LIFECYCLE */}
+      <div className="bg-white border rounded-xl p-6 shadow-sm">
+
+        <h3 className="font-semibold text-lg">
+          Contract Lifecycle
+        </h3>
+        <p className="text-sm text-slate-500 mb-6">
+          Track contract progress
+        </p>
+
+        <div className="flex justify-between">
+
+          {steps.map((s, i) => (
+            <div
+              key={i}
+              className="flex flex-col items-center gap-2 w-full"
+            >
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition
+                ${
+                  i <= currentStep
+                    ? "bg-blue-600 text-white"
+                    : "bg-slate-100 text-slate-400"
+                }`}
+              >
+                {s.icon}
+              </div>
+
+              <p
+                className={`text-sm
+                ${
+                  i <= currentStep
+                    ? "text-blue-600 font-medium"
+                    : "text-slate-400"
+                }`}
+              >
+                {s.label}
               </p>
             </div>
+          ))}
+        </div>
+      </div>
 
-            <div className="flex items-center gap-3">
-              <StatusBadge
-                status={contract.status}
-              />
+      {/* GRID */}
+      <div className="grid lg:grid-cols-2 gap-6">
 
-              <button
-                onClick={downloadPDF}
-                disabled={downloading}
-                className="flex items-center gap-2 bg-black text-white px-3 py-2 rounded-md text-sm disabled:opacity-50"
-              >
-                <Download size={16} />
-                {downloading
-                  ? "Generating..."
-                  : "Download PDF"}
-              </button>
-            </div>
-          </div>
+        {/* LEFT INFO */}
+        <div className="bg-white border rounded-xl p-6 space-y-5 shadow-sm">
 
-          {/* STEPPER */}
-          <div className="flex justify-between mb-10">
-            {steps.map((_, i) => (
-              <div
-                key={i}
-                className="flex-1 flex items-center"
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
-                  ${
-                    i <= currentStep
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-200 text-slate-500"
-                  }`}
-                >
-                  {i + 1}
-                </div>
+          <h3 className="font-semibold text-lg">
+            Contract Information
+          </h3>
 
-                {i !== steps.length - 1 && (
-                  <div
-                    className={`flex-1 h-1 mx-2
-                    ${
-                      i < currentStep
-                        ? "bg-blue-600"
-                        : "bg-slate-200"
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+          <InfoRow
+            label="Created"
+            value={today}
+          />
+          <InfoRow
+            label="Last updated"
+            value={today}
+          />
+          <InfoRow
+            label="Blueprint"
+            value={blueprint?.name}
+            blue
+          />
 
           {/* ACTIONS */}
-          <div className="border-t pt-6 space-y-4">
+          <div className="border-t pt-4 space-y-3">
 
             {contract.status ===
               "CREATED" && (
-              <ActionCard
-                title="Approve contract"
-                desc="Review and approve"
-                btn="Approve"
-                color="green"
+              <PrimaryAction
+                text="Approve Contract"
+                color="blue"
                 onClick={() =>
                   updateStatus(
                     contract.id,
@@ -242,10 +223,8 @@ export default function ContractDetail() {
 
             {contract.status ===
               "APPROVED" && (
-              <ActionCard
-                title="Send to client"
-                desc="Email simulation"
-                btn="Send"
+              <PrimaryAction
+                text="Send to Client"
                 color="blue"
                 onClick={() =>
                   updateStatus(
@@ -258,11 +237,9 @@ export default function ContractDetail() {
 
             {contract.status ===
               "SENT" && (
-              <ActionCard
-                title="Await signature"
-                desc="Mark when signed"
-                btn="Signed"
-                color="purple"
+              <PrimaryAction
+                text="Mark as Signed"
+                color="blue"
                 onClick={() =>
                   updateStatus(
                     contract.id,
@@ -274,11 +251,9 @@ export default function ContractDetail() {
 
             {contract.status ===
               "SIGNED" && (
-              <ActionCard
-                title="Lock contract"
-                desc="Prevent changes"
-                btn="Lock"
-                color="slate"
+              <PrimaryAction
+                text="Lock Contract"
+                color="blue"
                 onClick={() =>
                   updateStatus(
                     contract.id,
@@ -287,60 +262,55 @@ export default function ContractDetail() {
                 }
               />
             )}
+
+            <PrimaryAction
+              text={
+                downloading
+                  ? "Generating PDF..."
+                  : "Download PDF"
+              }
+              color="dark"
+              onClick={downloadPDF}
+            />
           </div>
         </div>
 
-        {/* PREVIEW */}
+        {/* RIGHT PREVIEW */}
         <div
           id="contract-preview"
-          className="bg-white border rounded-lg p-8 h-fit text-sm"
+          className="bg-white border rounded-xl p-8 text-sm shadow-sm"
         >
           <h2 className="text-center text-lg font-bold">
-            {contract.companyName ||
-              "EURUSYS LLC"}
+            {contract.companyName}
           </h2>
 
-          <p className="text-center mb-6">
+          <p className="text-center mb-6 text-slate-500">
             OFFICIAL AGREEMENT
           </p>
 
-          <p className="mb-4">
-            Client:
-            <b className="ml-1">
-              {contract.clientName}
-            </b>
-            <br />
-            Date:
-            <b className="ml-1">
-              {today}
-            </b>
-          </p>
-
-          {/* TEMPLATE SECTIONS */}
           {blueprint?.sections.map(
             (s, i) => (
               <div
                 key={s.id}
-                className="mb-5"
+                className="mb-5 slide-up"
               >
-                <h3 className="font-semibold">
+                <p className="font-semibold">
                   {i + 1}. {s.title}
-                </h3>
-                <p>{s.content}</p>
+                </p>
+                <p className="text-slate-600">
+                  {s.content}
+                </p>
               </div>
             )
           )}
 
-          <div className="border-t pt-6 mt-8">
+          <div className="border-t pt-5 mt-8">
             <p>
               Signature:
               ___________________
             </p>
             <p className="mt-2">
-              Date:
-              <b className="ml-1">
-                {today}
-              </b>
+              Date: {today}
             </p>
           </div>
         </div>
@@ -349,45 +319,59 @@ export default function ContractDetail() {
   );
 }
 
-/* ACTION CARD */
+/* COMPONENTS */
 
-function ActionCard({
-  title,
-  desc,
-  btn,
+function InfoRow({
+  label,
+  value,
+  blue,
+}: any) {
+  return (
+    <div className="flex justify-between text-sm border-b pb-2">
+      <p className="text-slate-500">
+        {label}
+      </p>
+      <p
+        className={
+          blue
+            ? "text-blue-600 font-medium"
+            : "font-medium"
+        }
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function PrimaryAction({
+  text,
   onClick,
   color,
-}: ActionCardProps) {
-  const map: Record<ActionColor, string> = {
-    green:
-      "bg-green-50 border-green-200 text-green-700",
+}: any) {
+  const map = {
     blue:
-      "bg-blue-50 border-blue-200 text-blue-700",
-    purple:
-      "bg-purple-50 border-purple-200 text-purple-700",
-    slate:
-      "bg-slate-50 border-slate-200 text-slate-700",
+      "bg-blue-600 hover:bg-blue-700",
+    dark:
+      "bg-slate-900 hover:bg-black",
   };
 
   return (
-    <div
-      className={`border p-4 rounded-lg flex justify-between items-center ${map[color]}`}
+    <button
+      onClick={onClick}
+      className={`${map[color]} text-white w-full py-2 rounded-md text-sm font-medium transition`}
     >
-      <div>
-        <p className="font-medium">
-          {title}
-        </p>
-        <p className="text-sm opacity-80">
-          {desc}
-        </p>
-      </div>
+      {text}
+    </button>
+  );
+}
 
-      <button
-        onClick={onClick}
-        className="bg-black text-white px-4 py-2 rounded-md text-sm"
-      >
-        {btn}
-      </button>
+function Skeleton() {
+  return (
+    <div className="animate-pulse space-y-6">
+      <div className="h-6 bg-slate-200 w-1/3 rounded" />
+      <div className="h-40 bg-slate-200 rounded" />
+      <div className="h-64 bg-slate-200 rounded" />
     </div>
   );
 }
