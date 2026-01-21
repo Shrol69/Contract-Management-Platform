@@ -45,16 +45,20 @@ export default function CreateContract() {
       );
       return;
     }
+if (!selectedBlueprint) {
+  toast.error("Please select a blueprint");
+  return;
+}
 
-    createContract({
-      blueprintId,
-      blueprintName:
-        selectedBlueprint?.name,
-      clientName,
-      companyName: company.name,
-      date: today,
-    });
+createContract({
+  blueprintId,
+  blueprintName: selectedBlueprint.name, // now guaranteed string
+  clientName,
+  companyName: company.name,
+  date,
+});
 
+  
     toast.success(
       "Contract created successfully"
     );
