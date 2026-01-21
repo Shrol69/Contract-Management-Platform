@@ -1,45 +1,12 @@
-@import "tailwindcss";
-.fade-in {
-  animation: fadeIn 0.4s ease-in-out;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-.slide-up {
-  animation: slideUp 0.3s ease;
-}
-
-.pop {
-  animation: pop 0.2s ease;
-}
+/* Animations */
 
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(8px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes pop {
-  from { transform: scale(0.9); }
-  to { transform: scale(1); }
-}
-.fade-in {
-  animation: fadeIn 0.4s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.animate-fadeIn {
-  animation: fadeIn .4s ease;
 }
 
 @keyframes slideUp {
@@ -53,46 +20,29 @@
   }
 }
 
-.slide-up {
-  animation: slideUp .35s ease forwards;
-}
-
 @keyframes pop {
   from { transform: scale(.9); }
   to { transform: scale(1); }
 }
 
-.pop {
-  animation: pop .25s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.fade-in {
+  animation: fadeIn 0.4s ease-in-out;
 }
 
 .animate-fadeIn {
-  animation: fadeIn .4s ease;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  animation: fadeIn 0.4s ease;
 }
 
 .slide-up {
-  animation: slideUp .35s ease forwards;
+  animation: slideUp 0.35s ease forwards;
 }
-.slide-up {
-  animation: slideUp 0.4s ease forwards;
+
+.pop {
+  animation: pop 0.25s ease;
 }
-@keyframes slideUp {
-  from { opacity:0; transform: translateY(10px); }
-  to { opacity:1; transform: translateY(0); }
+
+/* Global styles */
+
+body {
+  @apply bg-slate-50 text-slate-900;
 }
