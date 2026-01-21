@@ -3,6 +3,7 @@
 import { useStore } from "@/store/useStore";
 import Link from "next/link";
 import { FileText, Plus } from "lucide-react";
+import { BiBook } from "react-icons/bi";
 
 /* ================= DASHBOARD ================= */
 
@@ -42,8 +43,9 @@ export default function Dashboard() {
         <div className="flex gap-3">
           <Link
             href="/blueprints"
-            className="px-4 py-2 border rounded-md text-sm font-medium hover:bg-slate-50"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium flex items-center gap-2"
           >
+            <BiBook size={16} />
             New Blueprint
           </Link>
 
@@ -88,7 +90,7 @@ export default function Dashboard() {
         <Card
           title="Recent Contracts"
           subtitle="Latest contract activity"
-          link="/contracts"
+          link="/"
         >
           {contracts.length === 0 ? (
             <Empty

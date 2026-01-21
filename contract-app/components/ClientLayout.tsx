@@ -5,7 +5,11 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   FileText,
+  Settings,
   User,
+  Menu,
+  ClipboardList,
+  Info
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -51,23 +55,39 @@ export default function ClientLayout({
 
   if (!mounted) return null;
 
-  const nav = [
-    {
-      name: "Dashboard",
-      href: "/",
-      icon: LayoutDashboard,
-    },
-    {
-      name: "Blueprints",
-      href: "/blueprints",
-      icon: FileText,
-    },
-    {
-      name: "Contracts",
-      href: "/contracts",
-      icon: FileText,
-    },
-  ];
+ const navItems = [
+  {
+    name: "Dashboard",
+    href: "/",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Create Contract",
+    href: "/create",
+    icon: FileText,
+  },
+  {
+    name: "Blueprints",
+    href: "/blueprints",
+    icon: FileText,
+  },
+  {
+    name: "Audit Logs",
+    href: "/logs",
+    icon: ClipboardList,
+  },
+  {
+    name: "Settings",
+    href: "/settings",
+    icon: Settings,
+  },
+  {
+    name: "About",
+    href: "/about",
+    icon: Info,
+  },
+];
+
 
   return (
     <div className="min-h-screen">
@@ -88,7 +108,7 @@ export default function ClientLayout({
 
           {/* NAV TABS */}
           <nav className="flex items-center gap-2">
-            {nav.map((item) => {
+            {navItems.map((item) => {
               const active =
                 pathname === item.href;
 

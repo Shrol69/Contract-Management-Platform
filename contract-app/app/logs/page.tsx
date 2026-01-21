@@ -2,45 +2,76 @@
 
 import { useStore } from "@/store/useStore";
 import { format } from "date-fns";
+import { Activity } from "lucide-react";
 
 export default function Logs() {
   const logs = useStore((s) => s.logs);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4">
+    <div className="max-w-5xl mx-auto space-y-8 animate-fadeIn">
 
+      {/* HEADER */}
       <div>
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-3xl font-semibold tracking-tight">
           Audit Logs
         </h1>
         <p className="text-sm text-slate-500">
-          Track all contract activities
+          Track every action performed on contracts
         </p>
       </div>
 
-      <div className="bg-white border rounded-lg divide-y">
+      {/* LOG CARD */}
+      <div className="bg-white border rounded-xl shadow-sm">
 
+        {/* EMPTY */}
         {logs.length === 0 && (
-          <p className="p-6 text-sm text-slate-400 text-center">
-            No activity recorded yet
-          </p>
+          <div className="p-10 text-center">
+            <Activity
+              size={36}
+              className="mx-auto text-slate-300 mb-3"
+            />
+            <p className="text-sm text-slate-400">
+              No activity recorded yet
+            </p>
+          </div>
         )}
 
-        {logs.map((l) => (
+        {/* LIST */}
+        {logs.map((l, i) => (
           <div
             key={l.id}
-            className="p-4 flex justify-between"
+            style={{
+              animationDelay: `${i * 40}ms`,
+            }}
+            className="p-5 border-b last:border-b-0 flex items-start justify-between gap-4 slide-up"
           >
-            <div>
-              <p className="text-sm font-medium">
-                {l.action}
-              </p>
-              <p className="text-xs text-slate-500">
-                Contract ID: {l.contractId}
-              </p>
+            <div className="flex gap-3">
+
+              {/* ICON */}
+              <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center">
+                <Activity
+                  size={16}
+                  className="text-blue-600"
+                />
+              </div>
+
+              {/* TEXT */}
+              <div>
+                <p className="text-sm font-medium">
+                  {l.action}
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  Contract ID:{" "}
+                  <span className="font-mono">
+                    {l.contractId}
+                  </span>
+                </p>
+              </div>
             </div>
 
-            <p className="text-xs text-slate-400">
+            {/* TIME */}
+            <p className="text-xs text-slate-400 whitespace-nowrap">
               {format(
                 new Date(l.time),
                 "dd MMM yyyy, hh:mm a"
