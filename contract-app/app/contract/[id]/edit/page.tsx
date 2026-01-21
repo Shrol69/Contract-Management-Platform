@@ -30,15 +30,18 @@ export default function EditContract() {
     );
   }
 
-  function handleSave() {
-    editContract(contract.id, {
-      clientName,
-      companyName,
-    });
+function handleSave() {
+  if (!contract) return; // 👈 add this line
 
-    toast.success("Contract updated successfully");
-    router.push(`/contract/${contract.id}`);
-  }
+  editContract(contract.id, {
+    clientName,
+    companyName,
+  });
+
+  toast.success("Contract updated successfully");
+  router.push(`/contract/${contract.id}`);
+}
+
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 animate-fadeIn">
