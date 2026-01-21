@@ -55,7 +55,7 @@ createContract({
   blueprintName: selectedBlueprint.name, // now guaranteed string
   clientName,
   companyName: company.name,
-  date,
+  date: today,
 });
 
   
